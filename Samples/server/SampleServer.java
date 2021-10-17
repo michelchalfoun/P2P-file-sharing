@@ -4,7 +4,7 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
-public class Server {
+public class SampleServer {
 
 	private static final int sPort = 8000;   //The server will be listening on this port number
 
