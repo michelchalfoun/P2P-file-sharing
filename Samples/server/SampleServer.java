@@ -27,15 +27,15 @@ public class SampleServer {
 
 		/**
      	* A handler thread class.  Handlers are spawned from the listening
-     	* loop and are responsible for dealing with a single client's requests.
+     	* loop and are responsible for dealing with a single src.main.java.client's requests.
      	*/
     	private static class Handler extends Thread {
-        private String message;    //message received from the client
-		private String MESSAGE;    //uppercase message send to the client
+        private String message;    //message received from the src.main.java.client
+		private String MESSAGE;    //uppercase message send to the src.main.java.client
 		private Socket connection;
         private ObjectInputStream in;	//stream read from the socket
         private ObjectOutputStream out;    //stream write to the socket
-		private int no;		//The index number of the client
+		private int no;		//The index number of the src.main.java.client
 
 		public Handler(Socket connection, int no) {
 				this.connection = connection;
@@ -50,13 +50,13 @@ public class SampleServer {
 				in = new ObjectInputStream(connection.getInputStream());
 				try{
 					while(true){
-						//receive the message sent from the client
+						//receive the message sent from the src.main.java.client
 						message = (String)in.readObject();
 						//show the message to the user
-						System.out.println("Receive message: " + message + " from client " + no);
+						System.out.println("Receive message: " + message + " from src.main.java.client " + no);
 						//Capitalize all letters in the message
 						MESSAGE = message.toUpperCase();
-						//send MESSAGE back to the client
+						//send MESSAGE back to the src.main.java.client
 						sendMessage(MESSAGE);
 					}
 				}

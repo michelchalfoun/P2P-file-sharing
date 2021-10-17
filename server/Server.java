@@ -7,29 +7,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class Server {
-
-    /*
-    p1 -> listening p2, p3, p4
-
-
-    receive:
-    - handshake
-
-
-    send:
-    - handshake (on handshake or initializes)
-
-The peer that has just started should make TCP connections to all peers that started
-before it. For example, the peer process with peer ID 1003 in the above example should
-make TCP connections to the peer processes with peer ID 1001 and peer ID 1002. In the
-same way, the peer process with peer ID 1004 should make TCP connections to the peer
-processes with peer ID 1001, 1002, and 1003. When all processes have started, all peers
-are connected with all other peers. Note that this behavior is different from that of
-BitTorrent. It is just for simplifying the project.
-
-
-     */
-
     private static final int sPort = 8000;
 
     public static void main(String[] args) throws Exception {
@@ -48,12 +25,12 @@ BitTorrent. It is just for simplifying the project.
     }
 
     private static class Handler extends Thread {
-        private String message;    //message received from the client
-        private String MESSAGE;    //uppercase message send to the client
+        private String message;    //message received from the src.main.java.client
+        private String MESSAGE;    //uppercase message send to the src.main.java.client
         private Socket connection;
         private ObjectInputStream in;	//stream read from the socket
         private ObjectOutputStream out;    //stream write to the socket
-        private int no;		//The index number of the client
+        private int no;		//The index number of the src.main.java.client
 
         public Handler(Socket connection, int no) {
             this.connection = connection;
@@ -68,13 +45,13 @@ BitTorrent. It is just for simplifying the project.
                 in = new ObjectInputStream(connection.getInputStream());
                 try{
                     while(true) {
-                        //receive the message sent from the client
+                        //receive the message sent from the src.main.java.client
                         message = (String)in.readObject();
                         //show the message to the user
-                        System.out.println("Receive message: " + message + " from client " + no);
+                        System.out.println("Receive message: " + message + " from src.main.java.client " + no);
                         //Capitalize all letters in the message
                         MESSAGE = message.toUpperCase();
-                        //send MESSAGE back to the client
+                        //send MESSAGE back to the src.main.java.client
                         sendMessage(MESSAGE);
                     }
                 }

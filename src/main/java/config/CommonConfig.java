@@ -1,19 +1,10 @@
-package Config;
+package config;
 
-import java.io.File;  // Import the File class
-import java.io.FileNotFoundException;  // Import this class to handle errors
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner; // Import the Scanner class to read text files
-
-/*
-NumberOfPreferredNeighbors 3
-UnchokingInterval 5
-OptimisticUnchokingInterval 10
-FileName tree.jpg
-FileSize 24301474
-PieceSize 16384
- */
+import java.util.Scanner;
 
 public class CommonConfig {
     private final int numberOfPreferredNeighbors;
@@ -25,9 +16,11 @@ public class CommonConfig {
 
     public CommonConfig() {
         Map<String, String> fileValueByKey = getConfigurationValuesByIndex();
-        numberOfPreferredNeighbors = Integer.parseInt(fileValueByKey.get("NumberOfPreferredNeighbors"));
+        numberOfPreferredNeighbors =
+                Integer.parseInt(fileValueByKey.get("NumberOfPreferredNeighbors"));
         unchokingInterval = Integer.parseInt(fileValueByKey.get("UnchokingInterval"));
-        optimisticUnchokingInterval = Integer.parseInt(fileValueByKey.get("OptimisticUnchokingInterval"));
+        optimisticUnchokingInterval =
+                Integer.parseInt(fileValueByKey.get("OptimisticUnchokingInterval"));
         fileName = fileValueByKey.get("FileName");
         fileSize = Integer.parseInt(fileValueByKey.get("FileSize"));
         pieceSize = Integer.parseInt(fileValueByKey.get("PieceSize"));
@@ -36,7 +29,7 @@ public class CommonConfig {
     public Map<String, String> getConfigurationValuesByIndex() {
         final Map<String, String> valueByKey = new HashMap<>();
         try {
-            final File commonCFGFile = new File("/Users/michelchalfoun/Documents/Education/Classes/USA/UF/Fall 2021/Comp. Network Fundamentals/Project/P2P-file-sharing/project_config_file_large/Common.cfg");
+            final File commonCFGFile = new File("/Users/pabloestrada/Desktop/P2P-file-sharing/project_config_file_small/Common.cfg");
             final Scanner reader = new Scanner(commonCFGFile);
             while (reader.hasNextLine()) {
                 final String data = reader.nextLine();
