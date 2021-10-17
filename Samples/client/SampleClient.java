@@ -1,8 +1,7 @@
+package Samples.client;
+
 import java.net.*;
 import java.io.*;
-import java.nio.*;
-import java.nio.channels.*;
-import java.util.*;
 
 public class SampleClient {
 	Socket requestSocket;           //socket connect to the server
@@ -78,7 +77,7 @@ public class SampleClient {
 	//main method
 	public static void main(String args[])
 	{
-		Client client = new Client();
+		SampleClient client = new SampleClient();
 		client.run();
 	}
 }
