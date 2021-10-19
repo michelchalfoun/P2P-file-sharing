@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
+import java.util.Objects;
 
 public class HandshakeMessage implements Serializable
 {
@@ -51,5 +52,20 @@ public class HandshakeMessage implements Serializable
                 ", ZERO_BITS=" + Arrays.toString(ZERO_BITS) +
                 ", peerID=" + peerID +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HandshakeMessage that = (HandshakeMessage) o;
+        return peerID == that.peerID && HANDSHAKE_HEADER.equals(that.HANDSHAKE_HEADER) && Arrays.equals(ZERO_BITS, that.ZERO_BITS);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hash(HANDSHAKE_HEADER, peerID);
+        result = 31 * result + Arrays.hashCode(ZERO_BITS);
+        return result;
     }
 }

@@ -8,11 +8,9 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 public class PeerConnection extends Thread {
-    private String message;
-    private String MESSAGE;
     private Socket connection;
-    private ObjectInputStream in;
-    private ObjectOutputStream out;
+    private ObjectInputStream inputStream;
+    private ObjectOutputStream outputStream;
 
     public PeerConnection(final Socket neighborSocket) {
         connection = neighborSocket;
@@ -20,12 +18,12 @@ public class PeerConnection extends Thread {
 
     public void run() {
         try {
-            out = new ObjectOutputStream(connection.getOutputStream());
-            out.flush();
-            in = new ObjectInputStream(connection.getInputStream());
+            outputStream = new ObjectOutputStream(connection.getOutputStream());
+            outputStream.flush();
+            inputStream = new ObjectInputStream(connection.getInputStream());
             try {
                 while (true) {
-                    final HandshakeMessage hanshakeMessage = (HandshakeMessage) in.readObject();
+                    final HandshakeMessage hanshakeMessage = (HandshakeMessage) inputStream.readObject();
                     System.out.println("Received message: " + hanshakeMessage);
                 }
             } catch (ClassNotFoundException classnot) {
@@ -36,8 +34,8 @@ public class PeerConnection extends Thread {
             System.out.println("Disconnect with neighbor peer");
         } finally {
             try {
-                in.close();
-                out.close();
+                inputStream.close();
+                outputStream.close();
             } catch (IOException ioException) {
                 ioException.printStackTrace();
                 System.out.println("Disconnect with neighbor peer!");

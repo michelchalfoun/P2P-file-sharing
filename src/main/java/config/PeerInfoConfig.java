@@ -8,15 +8,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class PeerInfoConfig {
-
-    private static final String CONFIG_FOLDER = "project_config_file_large/";
     private Map<Integer, PeerMetadata> peerMetadataById = new HashMap<>();
 
     public PeerInfoConfig() {
         try {
-            final File myObj =
-                    new File(
-                            "/Users/pabloestrada/Desktop/P2P-file-sharing/project_test/PeerInfo.cfg");
+            final File myObj = new File(System.getProperty("user.dir") + "/PeerInfo.cfg");
             final Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 final String data = myReader.nextLine();

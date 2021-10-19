@@ -74,8 +74,7 @@ public class Peer {
     public void run() {
         peerInfoConfig
                 .getPrevPeers(peerID)
-                .forEach(
-                        (neighborPeerID, metadata) -> sendHandshake(neighborPeerID, metadata));
+                .forEach((neighborPeerID, metadata) -> sendHandshake(neighborPeerID, metadata));
 
         listenForConnections();
     }

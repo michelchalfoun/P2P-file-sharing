@@ -4,16 +4,18 @@ import org.junit.Test;
 
 import java.io.*;
 
-public class HandshakeMessageTest {
+import static junit.framework.TestCase.assertEquals;
 
+public class HandshakeMessageTest
+{
     @Test
-    public void testSerialization() throws IOException, ClassNotFoundException {
-        HandshakeMessage msg = new HandshakeMessage(1);
+    public void testDeserialization() throws IOException, ClassNotFoundException {
+        HandshakeMessage expectedHandshakeMessage = new HandshakeMessage(1);
 
-        byte[] serializedData = getByteArray(msg);
-        HandshakeMessage deserializedEmp = (HandshakeMessage) getObject(serializedData);
+        byte[] serializedData = getByteArray(expectedHandshakeMessage);
+        final HandshakeMessage deserializedMessage = (HandshakeMessage) getObject(serializedData);
 
-        System.out.println("Deserialized Employee : " + deserializedEmp);
+        assertEquals(expectedHandshakeMessage, deserializedMessage);
     }
 
     private static byte[] getByteArray(Object obj) throws IOException {
