@@ -45,6 +45,7 @@ public class Peer {
                     new ObjectOutputStream(neighborSocket.getOutputStream());
             outputStream.flush();
             outputStream.writeObject(handshakeMessage);
+            System.out.println("Peer " + peerID + " sent handshake message to " + neighborPeerID);
             outputStream.flush();
             outputStream.close();
             socketConnectionsByNeighborID.put(neighborPeerID, neighborSocket);

@@ -31,7 +31,7 @@ public class CommonConfig {
         try {
             final File commonCFGFile =
                     new File(
-                            "/Users/pabloestrada/Desktop/P2P-file-sharing/project_config_file_small/Common.cfg");
+                            "/Users/pabloestrada/Desktop/P2P-file-sharing/project_test/Common.cfg");
             final Scanner reader = new Scanner(commonCFGFile);
             while (reader.hasNextLine()) {
                 final String data = reader.nextLine();

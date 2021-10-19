@@ -43,7 +43,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>Samples.server.SampleServer</mainClass>
+                                    <mainClass>peer.Peer</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

@@ -16,7 +16,7 @@ public class PeerInfoConfig {
         try {
             final File myObj =
                     new File(
-                            "/Users/pabloestrada/Desktop/P2P-file-sharing/project_config_file_small/PeerInfo.cfg");
+                            "/Users/pabloestrada/Desktop/P2P-file-sharing/project_test/PeerInfo.cfg");
             final Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 final String data = myReader.nextLine();
