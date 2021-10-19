@@ -1,4 +1,4 @@
-package Samples.client;
+package server;
 
 import java.net.*;
 import java.io.*;
@@ -12,11 +12,11 @@ public class SampleClient {
 
 	public void Client() {}
 
-	void run()
+	void run(String host)
 	{
 		try{
 			//create a socket to connect to the server
-			requestSocket = new Socket("localhost", 8000);
+			requestSocket = new Socket(host, 8000);
 			System.out.println("Connected to localhost in port 8000");
 			//initialize inputStream and outputStream
 			out = new ObjectOutputStream(requestSocket.getOutputStream());
@@ -78,7 +78,7 @@ public class SampleClient {
 	public static void main(String args[])
 	{
 		SampleClient client = new SampleClient();
-		client.run();
+		client.run(args[0]);
 	}
 }
 

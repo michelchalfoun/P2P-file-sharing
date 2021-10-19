@@ -13,4 +13,30 @@ public class PeerMetadata
         this.listeningPort = listeningPort;
         this.hasFile = hasFile;
     }
+
+    public int getPeerID() {
+        return peerID;
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+
+    public int getListeningPort() {
+        return listeningPort;
+    }
+
+    public boolean isHasFile() {
+        return hasFile;
+    }
+
+    @Override
+    public String toString() {
+        return "PeerMetadata{" +
+                "peerID=" + peerID +
+                ", hostName='" + hostName + '\'' +
+                ", listeningPort=" + listeningPort +
+                ", hasFile=" + hasFile +
+                '}';
+    }
 }

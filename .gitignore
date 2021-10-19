@@ -20,6 +20,9 @@ out/
 # Java
 *.class
 
+# Maven
+/target
+
 # Package Files #
 *.jar
 *.war

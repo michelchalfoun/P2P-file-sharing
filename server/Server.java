@@ -15,8 +15,9 @@ public class Server {
         int clientNum = 1;
         try {
             while(true) {
-                new Server.Handler(listener.accept(),clientNum).start();
-                System.out.println("Client "  + clientNum + " is connected!");
+                Socket socket = listener.accept();
+                new Server.Handler(socket,clientNum).start();
+                System.out.println("Client "  + clientNum + " is connected of " + socket.getInetAddress() + " and " + socket.getRemoteSocketAddress() + " and " + socket.getLocalSocketAddress());
                 clientNum++;
             }
         } finally {
@@ -46,6 +47,7 @@ public class Server {
                 try{
                     while(true) {
                         //receive the message sent from the src.main.java.client
+                        System.out.println(in.readObject());
                         message = (String)in.readObject();
                         //show the message to the user
                         System.out.println("Receive message: " + message + " from src.main.java.client " + no);

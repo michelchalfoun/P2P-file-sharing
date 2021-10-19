@@ -1,5 +1,7 @@
 package Samples.server;
 
+import messages.HandshakeMessage;
+
 import java.net.*;
 import java.io.*;
 import java.nio.*;
@@ -16,11 +18,13 @@ public class SampleServer {
 		int clientNum = 1;
         	try {
 				while(true) {
-					new Handler(listener.accept(),clientNum).start();
-					System.out.println("Client "  + clientNum + " is connected!");
+					Socket socket = listener.accept();
+					new SampleServer.Handler(socket,clientNum).start();
+					System.out.println("Client "  + clientNum + " is connected of " + socket.getInetAddress() + " and " + socket.getRemoteSocketAddress() + " and " + socket.getLocalSocketAddress());
 					clientNum++;
             	}
         	} finally {
+				System.out.println("closing");
             	listener.close();
         	}
     	}
@@ -48,10 +52,15 @@ public class SampleServer {
 				out = new ObjectOutputStream(connection.getOutputStream());
 				out.flush();
 				in = new ObjectInputStream(connection.getInputStream());
+				System.out.println("RUN1");
 				try{
 					while(true){
-						//receive the message sent from the src.main.java.client
-						message = (String)in.readObject();
+						System.out.println("WHY???");
+						HandshakeMessage obj = (HandshakeMessage) in.readObject();
+						System.out.println(obj);
+						System.out.println("RUNNING THIS");
+//						System.out.println((HandshakeMessage) obj);
+						String message = "(String) obj";
 						//show the message to the user
 						System.out.println("Receive message: " + message + " from src.main.java.client " + no);
 						//Capitalize all letters in the message
@@ -61,6 +70,7 @@ public class SampleServer {
 					}
 				}
 				catch(ClassNotFoundException classnot){
+					System.out.println(classnot);
 					System.err.println("Data received in unknown format");
 				}
 			}

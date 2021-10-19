@@ -29,7 +29,9 @@ public class CommonConfig {
     public Map<String, String> getConfigurationValuesByIndex() {
         final Map<String, String> valueByKey = new HashMap<>();
         try {
-            final File commonCFGFile = new File("/Users/pabloestrada/Desktop/P2P-file-sharing/project_config_file_small/Common.cfg");
+            final File commonCFGFile =
+                    new File(
+                            "/Users/pabloestrada/Desktop/P2P-file-sharing/project_config_file_small/Common.cfg");
             final Scanner reader = new Scanner(commonCFGFile);
             while (reader.hasNextLine()) {
                 final String data = reader.nextLine();

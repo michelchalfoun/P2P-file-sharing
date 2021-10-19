@@ -14,7 +14,9 @@ public class PeerInfoConfig {
 
     public PeerInfoConfig() {
         try {
-            final File myObj = new File("/Users/pabloestrada/Desktop/P2P-file-sharing/project_config_file_small/PeerInfo.cfg");
+            final File myObj =
+                    new File(
+                            "/Users/pabloestrada/Desktop/P2P-file-sharing/project_config_file_small/PeerInfo.cfg");
             final Scanner myReader = new Scanner(myObj);
             while (myReader.hasNextLine()) {
                 final String data = myReader.nextLine();
@@ -39,11 +41,9 @@ public class PeerInfoConfig {
         return peerMetadataById.get(peerID);
     }
 
-    public Map<Integer, PeerMetadata> getPrevPeers(String peerID) {
+    public Map<Integer, PeerMetadata> getPrevPeers(final Integer peerID) {
         return peerMetadataById.entrySet().stream()
-                .filter(
-                        currentPeerID ->
-                                currentPeerID.getKey() < Integer.parseInt(peerID))
+                .filter(currentPeerID -> currentPeerID.getKey() < peerID)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }

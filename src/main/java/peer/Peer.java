@@ -2,79 +2,85 @@ package peer;
 
 import config.CommonConfig;
 import config.PeerInfoConfig;
+import messages.HandshakeMessage;
 
 import java.net.*;
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Peer {
-    Socket requestSocket; // socket connect to the server
-    ObjectOutputStream out; // stream write to the socket
-    ObjectInputStream in; // stream read from the socket
-    String message; // message send to the server
-    String MESSAGE; // capitalized message read from the server
+    private final int peerID;
 
     private final CommonConfig commonConfig;
     private final PeerInfoConfig peerInfoConfig;
 
     private final PeerMetadata metadata;
 
+    private final Map<Integer, Socket> socketConnectionsByNeighborID;
+
+    private ServerSocket listenerSocket;
+
     public Peer(final int peerID) {
+        this.peerID = peerID;
+
         commonConfig = new CommonConfig();
         peerInfoConfig = new PeerInfoConfig();
-
         metadata = peerInfoConfig.getPeerInfo(peerID);
+        socketConnectionsByNeighborID = new HashMap<>();
+
+        try {
+            listenerSocket = new ServerSocket(metadata.getListeningPort());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendHandshake(final int neighborPeerID, final PeerMetadata metadata) {
+        final HandshakeMessage handshakeMessage = new HandshakeMessage(peerID);
+        try {
+            final Socket neighborSocket =
+                    new Socket(metadata.getHostName(), metadata.getListeningPort());
+            final ObjectOutputStream outputStream =
+                    new ObjectOutputStream(neighborSocket.getOutputStream());
+            outputStream.flush();
+            outputStream.writeObject(handshakeMessage);
+            outputStream.flush();
+            outputStream.close();
+            socketConnectionsByNeighborID.put(neighborPeerID, neighborSocket);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void listenForConnections() {
+        try {
+            while (true) {
+                Socket socket = listenerSocket.accept();
+                new PeerConnection(socket).start();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                listenerSocket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public void run() {
-        try {
-            requestSocket = new Socket("localhost", 8000);
-            System.out.println("Connected to localhost in port 8000");
+        peerInfoConfig
+                .getPrevPeers(peerID)
+                .forEach(
+                        (neighborPeerID, metadata) -> sendHandshake(neighborPeerID, metadata));
 
-            out = new ObjectOutputStream(requestSocket.getOutputStream());
-            out.flush();
-            in = new ObjectInputStream(requestSocket.getInputStream());
-
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-
-            while (true) {
-                System.out.print("Hello, please input a sentence: ");
-                message = bufferedReader.readLine();
-                sendMessage(message);
-                MESSAGE = (String) in.readObject();
-                System.out.println("Received message: " + MESSAGE);
-            }
-        } catch (ConnectException e) {
-            System.err.println("Connection refused. You need to initiate a server first.");
-        } catch (ClassNotFoundException e) {
-            System.err.println("Class not found");
-        } catch (UnknownHostException unknownHost) {
-            System.err.println("You are trying to connect to an unknown host!");
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        } finally {
-            try {
-                in.close();
-                out.close();
-                requestSocket.close();
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
-            }
-        }
-    }
-
-    void sendMessage(String msg) {
-        try {
-            // stream write the message
-            out.writeObject(msg);
-            out.flush();
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        }
+        listenForConnections();
     }
 
     public static void main(String args[]) {
-        Peer client = new Peer(1003);
+        Peer client = new Peer(Integer.parseInt(args[0]));
         client.run();
-//        System.out.println(System.getProperty("user.dir"));
     }
 }
