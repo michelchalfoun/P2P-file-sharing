@@ -6,8 +6,7 @@ import messages.HandshakeMessage;
 
 import java.net.*;
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class Peer {
     private final int peerID;
@@ -19,6 +18,8 @@ public class Peer {
 
     private final Map<Integer, Socket> socketConnectionsByNeighborID;
 
+    private final Set<Integer> neighborsContacted;
+
     private ServerSocket listenerSocket;
 
     public Peer(final int peerID) {
@@ -27,7 +28,9 @@ public class Peer {
         commonConfig = new CommonConfig();
         peerInfoConfig = new PeerInfoConfig();
         metadata = peerInfoConfig.getPeerInfo(peerID);
+
         socketConnectionsByNeighborID = new HashMap<>();
+        neighborsContacted = new HashSet<>();
 
         try {
             listenerSocket = new ServerSocket(metadata.getListeningPort());
@@ -43,12 +46,29 @@ public class Peer {
                     new Socket(metadata.getHostName(), metadata.getListeningPort());
             final ObjectOutputStream outputStream =
                     new ObjectOutputStream(neighborSocket.getOutputStream());
+
+            neighborsContacted.add(neighborPeerID);
+
+            System.out.println("At this point: " + neighborsContacted);
+
             outputStream.flush();
             outputStream.writeObject(handshakeMessage);
             System.out.println("Peer " + peerID + " sent handshake message to " + neighborPeerID);
             outputStream.flush();
-            outputStream.close();
             socketConnectionsByNeighborID.put(neighborPeerID, neighborSocket);
+
+//            new PeerConnection(peerID, socket, neighborsContacted).start();
+
+            ObjectInputStream in = new ObjectInputStream(neighborSocket.getInputStream());
+            while(true) {
+                try {
+                    final HandshakeMessage d = (HandshakeMessage) in.readObject();
+                    System.out.println("Received response message: " + handshakeMessage);
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -58,7 +78,7 @@ public class Peer {
         try {
             while (true) {
                 Socket socket = listenerSocket.accept();
-                new PeerConnection(socket).start();
+                new PeerConnection(peerID, socket, neighborsContacted).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
