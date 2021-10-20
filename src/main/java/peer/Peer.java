@@ -49,25 +49,23 @@ public class Peer {
 
             neighborsContacted.add(neighborPeerID);
 
-            System.out.println("At this point: " + neighborsContacted);
-
             outputStream.flush();
             outputStream.writeObject(handshakeMessage);
-            System.out.println("Peer " + peerID + " sent handshake message to " + neighborPeerID);
+
+            System.out.println("Sent handshake message to: " + handshakeMessage);
+
             outputStream.flush();
             socketConnectionsByNeighborID.put(neighborPeerID, neighborSocket);
 
-//            new PeerConnection(peerID, socket, neighborsContacted).start();
-
             ObjectInputStream in = new ObjectInputStream(neighborSocket.getInputStream());
-            while(true) {
-                try {
-                    final HandshakeMessage d = (HandshakeMessage) in.readObject();
-                    System.out.println("Received response message: " + handshakeMessage);
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
+            try {
+                final HandshakeMessage responseMessage = (HandshakeMessage) in.readObject();
 
+                if (responseMessage.getPeerID() == neighborPeerID){
+                    System.out.println("Successful handshake with " + neighborPeerID + '.');
+                }
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -96,11 +94,14 @@ public class Peer {
                 .getPrevPeers(peerID)
                 .forEach((neighborPeerID, metadata) -> sendHandshake(neighborPeerID, metadata));
 
+
+
         listenForConnections();
     }
 
     public static void main(String args[]) {
         Peer client = new Peer(Integer.parseInt(args[0]));
+        System.out.println("Process "+ "\u001B[31m" + args[0] + "\u001B[0m" + " running.");
         client.run();
     }
 }

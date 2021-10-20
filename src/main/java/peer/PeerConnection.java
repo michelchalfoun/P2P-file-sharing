@@ -31,15 +31,12 @@ public class PeerConnection extends Thread {
                 while (true) {
                     final HandshakeMessage handshakeMessage = (HandshakeMessage) inputStream.readObject();
 
-                    System.out.println("Received message: " + handshakeMessage);
-
-                    System.out.println("Set: ");
-                    System.out.println(neighborsContacted);
-                    System.out.println("peerID: " + handshakeMessage.getPeerID());
+                    System.out.println("Received handshake message: " + handshakeMessage);
 
                     if (!neighborsContacted.contains(handshakeMessage.getPeerID())) {
-                        System.out.println("SEND THIS MESSAGE");
-                        outputStream.writeObject(new HandshakeMessage(peerID));
+                        HandshakeMessage responseHandshakeMessage = new HandshakeMessage(peerID);
+                        outputStream.writeObject(responseHandshakeMessage);
+                        System.out.println("Sent handshake response message to: " + responseHandshakeMessage);
                         outputStream.flush();
                     }
                 }
