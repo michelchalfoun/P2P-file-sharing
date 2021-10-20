@@ -3,6 +3,7 @@ package peer;
 import config.CommonConfig;
 import config.PeerInfoConfig;
 import messages.HandshakeMessage;
+import Logging.Logging;
 
 import java.net.*;
 import java.io.*;
@@ -22,8 +23,12 @@ public class Peer {
 
     private ServerSocket listenerSocket;
 
-    public Peer(final int peerID) {
+    private Logging logger;
+
+
+    public Peer(final int peerID) throws IOException {
         this.peerID = peerID;
+        this.logger = new Logging(peerID);
 
         commonConfig = new CommonConfig();
         peerInfoConfig = new PeerInfoConfig();
@@ -48,6 +53,8 @@ public class Peer {
                     new ObjectOutputStream(neighborSocket.getOutputStream());
 
             neighborsContacted.add(neighborPeerID);
+
+            logger.TCP_connect(neighborPeerID);
 
             System.out.println("At this point: " + neighborsContacted);
 
@@ -99,7 +106,7 @@ public class Peer {
         listenForConnections();
     }
 
-    public static void main(String args[]) {
+    public static void main(String args[]) throws IOException {
         Peer client = new Peer(Integer.parseInt(args[0]));
         client.run();
     }
