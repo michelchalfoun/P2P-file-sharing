@@ -1,4 +1,4 @@
-package messages.Payload;
+package messages.payload;
 
 import org.junit.Test;
 

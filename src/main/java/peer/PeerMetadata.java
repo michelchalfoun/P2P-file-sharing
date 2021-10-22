@@ -1,5 +1,8 @@
 package peer;
 
+/**
+ * Metadata object that contains all of the information from PeerInfo.cfg for a specific row
+ */
 public class PeerMetadata
 {
     private final int peerID;

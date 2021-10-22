@@ -3,14 +3,18 @@ package peer;
 import config.CommonConfig;
 import config.PeerInfoConfig;
 import messages.HandshakeMessage;
-import Logging.Logging;
+import logging.Logging;
 
 import java.net.*;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
-public class Peer {
+/**
+ * Main class that sets up the main Peer process (spins up all of the listener threads and keeps track of data)
+ */
+public class Peer
+{
     private final int peerID;
 
     private final CommonConfig commonConfig;
@@ -94,7 +98,8 @@ public class Peer {
                             neighborsContacted,
                             pieceIndexes,
                             outputStream,
-                            inputStream)
+                            inputStream,
+                    bitfieldsByNeighborID)
                     .start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -123,7 +128,7 @@ public class Peer {
         try {
             while (true) {
                 Socket socket = listenerSocket.accept();
-                new PeerConnection(peerID, socket, neighborsContacted, pieceIndexes).start();
+                new PeerConnection(peerID, socket, neighborsContacted, pieceIndexes, bitfieldsByNeighborID).start();
             }
         } catch (IOException e) {
             e.printStackTrace();

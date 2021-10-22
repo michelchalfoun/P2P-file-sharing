@@ -1,8 +1,13 @@
-package messages.Payload;
+package messages.payload;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
+/**
+ * Converts AtomicReferenceArray<Boolean> to byte[] array (and also the reverse). This class helps
+ * us with the conversion of the representation of bitfields in order to facilitate the logic to
+ * compare bitfields
+ */
 public class BitfieldPayload {
     private int messageLength;
     private byte[] payload;

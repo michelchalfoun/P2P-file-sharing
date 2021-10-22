@@ -1,5 +1,6 @@
 package messages;
 
+/** Establishes all of the message types with its appropiate ids */
 public enum MessageType
 {
     CHOKE(0),

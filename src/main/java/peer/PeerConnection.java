@@ -3,17 +3,21 @@ package peer;
 import messages.HandshakeMessage;
 import messages.Message;
 import messages.MessageType;
-import messages.Payload.BitfieldPayload;
+import messages.payload.BitfieldPayload;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Set;
+import java.util.Map;
 
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
-public class PeerConnection extends Thread {
+/** Listener thread that has the logic to communicate with other peers */
+public class PeerConnection
+        extends Thread
+{
     private Socket connection;
     private ObjectInputStream inputStream;
     private ObjectOutputStream outputStream;
@@ -22,6 +26,7 @@ public class PeerConnection extends Thread {
     private Set<Integer> neighborsContacted;
 
     private final AtomicReferenceArray<Boolean> pieces;
+    private Map<Integer, AtomicReferenceArray> bitfieldsByNeighborID;
 
     private boolean handshakeDone = false;
 
@@ -29,11 +34,13 @@ public class PeerConnection extends Thread {
             final int peerID,
             final Socket neighborSocket,
             final Set<Integer> neighborsContacted,
-            final AtomicReferenceArray<Boolean> pieces) {
+            final AtomicReferenceArray<Boolean> pieces,
+            final Map<Integer, AtomicReferenceArray> bitfieldsByNeighborID) {
         connection = neighborSocket;
         this.peerID = peerID;
         this.neighborsContacted = neighborsContacted;
         this.pieces = pieces;
+        this.bitfieldsByNeighborID = bitfieldsByNeighborID;
 
         try {
             outputStream = new ObjectOutputStream(connection.getOutputStream());
@@ -49,19 +56,20 @@ public class PeerConnection extends Thread {
         this.pieces = pieces;
     }
 
-
     public PeerConnection(
             final int peerID,
             final Socket neighborSocket,
             final Set<Integer> neighborsContacted,
             final AtomicReferenceArray<Boolean> pieces,
-            ObjectOutputStream outputStream,
-            ObjectInputStream inputStream) {
+            final ObjectOutputStream outputStream,
+            final ObjectInputStream inputStream,
+            final Map<Integer, AtomicReferenceArray> bitfieldsByNeighborID) {
         connection = neighborSocket;
         this.peerID = peerID;
         this.neighborsContacted = neighborsContacted;
         this.inputStream = inputStream;
         this.outputStream = outputStream;
+        this.bitfieldsByNeighborID = bitfieldsByNeighborID;
 
         this.pieces = pieces;
     }
@@ -96,6 +104,7 @@ public class PeerConnection extends Thread {
                         final Message message = (Message) inputStream.readObject();
                         System.out.println(message);
 
+                        // All other type of messages
                         switch (message.getMessageType()) {
                             case CHOKE:
                                 break;
@@ -129,8 +138,6 @@ public class PeerConnection extends Thread {
                                 break;
                         }
                     }
-
-                    // Other messages
                 }
             } catch (ClassNotFoundException classnot) {
                 System.err.println("Data received in unknown format");
@@ -149,6 +156,7 @@ public class PeerConnection extends Thread {
         }
     }
 
+    // Send message with interested/uninterested intent
     private void sendIntentMessage(final boolean interested) {
         Message notInterested =
                 new Message(
@@ -165,6 +173,7 @@ public class PeerConnection extends Thread {
         }
     }
 
+    // Convert AtomicReferenceArray<Boolean> to boolean[]
     private boolean[] convertAtomicReferenceArray(
             AtomicReferenceArray<Boolean> atomicReferenceArray) {
         boolean[] array = new boolean[atomicReferenceArray.length()];
@@ -174,6 +183,7 @@ public class PeerConnection extends Thread {
         return array;
     }
 
+    // Send bitfield payload
     private void sendBitfieldPayload() {
         int messageLength = (int) Math.ceil(pieces.length() / 8) + 1;
         BitfieldPayload bitfieldPayload = new BitfieldPayload(pieces);
@@ -191,16 +201,18 @@ public class PeerConnection extends Thread {
         }
     }
 
-    boolean comparePieces(final AtomicReferenceArray<Boolean> current, final AtomicReferenceArray<Boolean> received){
+    // Compare two bitfields
+    boolean comparePieces(
+            final AtomicReferenceArray<Boolean> current,
+            final AtomicReferenceArray<Boolean> received) {
         boolean equal = true;
-        for (int i = 0; i < current.length(); i++){
-            if (current.get(i) != received.get(i)){
-                if (!current.get(i)){
+        for (int i = 0; i < current.length(); i++) {
+            if (current.get(i) != received.get(i)) {
+                if (!current.get(i)) {
                     equal = false;
                 }
             }
         }
         return equal;
     }
-
 }

@@ -2,7 +2,6 @@ package peer;
 
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import static junit.framework.Assert.assertTrue;

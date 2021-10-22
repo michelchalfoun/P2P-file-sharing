@@ -6,7 +6,13 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Arrays;
 
-public class Message implements Serializable {
+/**
+ * General message that will be sent from peer to peer (there are 8 different types of messages that
+ * are specified in MessageType)
+ */
+public class Message
+        implements Serializable
+{
     private int messageLength;
     private byte messageType;
     private byte[] messagePayload;

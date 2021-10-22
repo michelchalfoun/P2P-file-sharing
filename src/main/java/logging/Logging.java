@@ -1,4 +1,4 @@
-package Logging;
+package logging;
 
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -6,10 +6,10 @@ import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
-
-public class Logging {
-
-    //Setup to be used throughout logging functions
+/** Logger class to log peer actions */
+public class Logging
+{
+    // Setup to be used throughout logging functions
     Logger logger;
     FileHandler fh;
     SimpleFormatter formatter;
@@ -20,8 +20,14 @@ public class Logging {
     }
 
     private void setFile(final int peerID_1) throws IOException {
-        //Might need to change this to protect from possible path issues
-        this.fh = new FileHandler(Paths.get(System.getProperty("user.dir")).getParent().getParent() + "/logs/log_peer_" + peerID_1 + ".log", true);
+        // Might need to change this to protect from possible path issues
+        this.fh =
+                new FileHandler(
+                        Paths.get(System.getProperty("user.dir"))
+                                + "/logs/log_peer_"
+                                + peerID_1
+                                + ".log",
+                        true);
         logger.addHandler(this.fh);
         this.formatter = new SimpleFormatter();
         this.fh.setFormatter(this.formatter);
@@ -55,7 +61,7 @@ public class Logging {
         for (int id : neighborID_list) {
             msg += id + ", ";
         }
-        //Remove last trailing comma and space
+        // Remove last trailing comma and space
         this.logger.info(msg.substring(0, msg.length() - 2) + ".");
     }
 
@@ -65,7 +71,12 @@ public class Logging {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info("Peer " + peerID_1 + " has the optimistically unchoked neighbor " + neighborID + ".");
+        this.logger.info(
+                "Peer "
+                        + peerID_1
+                        + " has the optimistically unchoked neighbor "
+                        + neighborID
+                        + ".");
     }
 
     public void unchoking(final int peerID_1, final int peerID_2) {
@@ -92,7 +103,14 @@ public class Logging {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info("Peer " + peerID_1 + " received the 'have' message from " + peerID_2 + " for the piece " + pieceIndex + ".");
+        this.logger.info(
+                "Peer "
+                        + peerID_1
+                        + " received the 'have' message from "
+                        + peerID_2
+                        + " for the piece "
+                        + pieceIndex
+                        + ".");
     }
 
     public void receiveInterestedMsg(final int peerID_1, final int peerID_2) {
@@ -101,7 +119,8 @@ public class Logging {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info("Peer " + peerID_1 + " received the 'interested' message from " + peerID_2 + ".");
+        this.logger.info(
+                "Peer " + peerID_1 + " received the 'interested' message from " + peerID_2 + ".");
     }
 
     public void receiveNotInterestedMsg(final int peerID_1, final int peerID_2) {
@@ -110,16 +129,31 @@ public class Logging {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info("Peer " + peerID_1 + " received the 'not interested' message from " + peerID_2 + ".");
+        this.logger.info(
+                "Peer "
+                        + peerID_1
+                        + " received the 'not interested' message from "
+                        + peerID_2
+                        + ".");
     }
 
-    public void downloadingPiece(final int peerID_1, final int peerID_2, final int pieceIndex, final int numOfPieces) {
+    public void downloadingPiece(
+            final int peerID_1, final int peerID_2, final int pieceIndex, final int numOfPieces) {
         try {
             setFile(peerID_1);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info("Peer " + peerID_1 + " has downloadded the piece " + pieceIndex + " from " + peerID_2 + ". Now the number of pieces it has is " + numOfPieces + ".");
+        this.logger.info(
+                "Peer "
+                        + peerID_1
+                        + " has downloadded the piece "
+                        + pieceIndex
+                        + " from "
+                        + peerID_2
+                        + ". Now the number of pieces it has is "
+                        + numOfPieces
+                        + ".");
     }
 
     public void completionOfDownload(final int peerID_1) {

@@ -1,8 +1,8 @@
-Oct 21, 2021 11:51:43 AM Logging.Logging TCP_connect
+Oct 21, 2021 11:51:43 AM logging.logging TCP_connect
 INFO: Peer 1002 makes a connection to Peer 1001.
-Oct 21, 2021 11:52:50 AM Logging.Logging TCP_connect
+Oct 21, 2021 11:52:50 AM logging.logging TCP_connect
 INFO: Peer 1002 makes a connection to Peer 1001.
-Oct 21, 2021 11:57:56 AM Logging.Logging TCP_connect
+Oct 21, 2021 11:57:56 AM logging.logging TCP_connect
 INFO: Peer 1002 makes a connection to Peer 1001.
-Oct 21, 2021 11:54:17 PM Logging.Logging TCP_connect
+Oct 21, 2021 11:54:17 PM logging.logging TCP_connect
 INFO: Peer 1002 makes a connection to Peer 1001.
