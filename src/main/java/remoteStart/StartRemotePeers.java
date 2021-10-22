@@ -73,7 +73,7 @@ public class StartRemotePeers {
                  * of JSch which accepts a password.
                  */
                 final String password = ""; // add key password
-                jsch.addIdentity("/Users/pabloestrada/.ssh/id_rsa", "");
+                jsch.addIdentity("/Users/pabloestrada/.ssh/id_rsa", password);
                 Session session = jsch.getSession(ciseUser, remotePeer.getHostName(), 22);
                 Properties config = new Properties();
                 config.put("StrictHostKeyChecking", "no");
