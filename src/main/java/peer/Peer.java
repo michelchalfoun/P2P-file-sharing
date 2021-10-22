@@ -8,6 +8,7 @@ import Logging.Logging;
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class Peer {
     private final int peerID;
@@ -18,25 +19,32 @@ public class Peer {
     private final PeerMetadata metadata;
 
     private final Map<Integer, Socket> socketConnectionsByNeighborID;
-
     private final Set<Integer> neighborsContacted;
 
     private ServerSocket listenerSocket;
+
+    private AtomicReferenceArray<Boolean> pieceIndexes;
+    private int numberOfPieces;
 
     private Logging logger;
 
 
     public Peer(final int peerID) throws IOException {
         this.peerID = peerID;
-        this.logger = new Logging(peerID);
+//        this.logger = new Logging(peerID);
 
+        // Setup config parsers
         commonConfig = new CommonConfig();
         peerInfoConfig = new PeerInfoConfig();
         metadata = peerInfoConfig.getPeerInfo(peerID);
 
+        // Initialize socket and neighbor information storage
         socketConnectionsByNeighborID = new HashMap<>();
         neighborsContacted = new HashSet<>();
 
+        initializePieceIndexes();
+
+        // Setup Listener port
         try {
             listenerSocket = new ServerSocket(metadata.getListeningPort());
         } catch (IOException e) {
@@ -44,46 +52,65 @@ public class Peer {
         }
     }
 
+    private void initializePieceIndexes() {
+        numberOfPieces = (int) Math.ceil((float) commonConfig.getFileSize() / (float) commonConfig.getPieceSize());
+        pieceIndexes = new AtomicReferenceArray<>(numberOfPieces);
+
+        for (int pieceId = 0; pieceId < numberOfPieces; pieceId++) {
+            if (metadata.isHasFile()) {
+                pieceIndexes.set(pieceId, true);
+            } else {
+                pieceIndexes.set(pieceId, false);
+            }
+        }
+    }
+
     private void sendHandshake(final int neighborPeerID, final PeerMetadata metadata) {
+
+        // Create HandshakeMessage object
         final HandshakeMessage handshakeMessage = new HandshakeMessage(peerID);
         try {
-            final Socket neighborSocket =
-                    new Socket(metadata.getHostName(), metadata.getListeningPort());
-            final ObjectOutputStream outputStream =
-                    new ObjectOutputStream(neighborSocket.getOutputStream());
 
-            neighborsContacted.add(neighborPeerID);
-
-            logger.TCP_connect(neighborPeerID);
-
+            // Get stored socked for neighbor and setup input and output streams
+            final Socket neighborSocket = socketConnectionsByNeighborID.get(neighborPeerID);
+            final ObjectOutputStream outputStream = new ObjectOutputStream(neighborSocket.getOutputStream());
             outputStream.flush();
+            ObjectInputStream inputStream = new ObjectInputStream(neighborSocket.getInputStream());
+
+            // Sends handshake message
             outputStream.writeObject(handshakeMessage);
-
             System.out.println("Sent handshake message to: " + handshakeMessage);
-
             outputStream.flush();
-            socketConnectionsByNeighborID.put(neighborPeerID, neighborSocket);
 
-            ObjectInputStream in = new ObjectInputStream(neighborSocket.getInputStream());
-            try {
-                final HandshakeMessage responseMessage = (HandshakeMessage) in.readObject();
-
-                if (responseMessage.getPeerID() == neighborPeerID){
-                    System.out.println("Successful handshake with " + neighborPeerID + '.');
-                }
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
+            new PeerConnection(peerID, neighborSocket, neighborsContacted, pieceIndexes, outputStream, inputStream).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    // Creates the socket connection with a specific neighbor and stores it
+    private void setupConnection(int neighborPeerID, final PeerMetadata metadata) {
+        try {
+
+            final Socket neighborSocket =
+                    new Socket(metadata.getHostName(), metadata.getListeningPort());
+            socketConnectionsByNeighborID.put(neighborPeerID, neighborSocket);
+            neighborsContacted.add(neighborPeerID);
+
+            // Log connection
+//            logger.TCP_connect(this.peerID, neighborPeerID);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Constantly listens for connections
     private void listenForConnections() {
         try {
             while (true) {
                 Socket socket = listenerSocket.accept();
-                new PeerConnection(peerID, socket, neighborsContacted).start();
+                new PeerConnection(peerID, socket, neighborsContacted, pieceIndexes).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -96,19 +123,24 @@ public class Peer {
         }
     }
 
+
+    // Handles checking previously started neighbors and connects to them
     public void run() {
         peerInfoConfig
                 .getPrevPeers(peerID)
+                .forEach((neighborPeerID, metadata) -> setupConnection(neighborPeerID, metadata));
+
+        peerInfoConfig
+                .getPrevPeers(peerID)
                 .forEach((neighborPeerID, metadata) -> sendHandshake(neighborPeerID, metadata));
-
-
 
         listenForConnections();
     }
 
     public static void main(String args[]) throws IOException {
+        // Setup Peer
         Peer client = new Peer(Integer.parseInt(args[0]));
-        System.out.println("Process "+ "\u001B[31m" + args[0] + "\u001B[0m" + " running.");
+        System.out.println("Process " + "\u001B[31m" + args[0] + "\u001B[0m" + " running.");
         client.run();
     }
 }
