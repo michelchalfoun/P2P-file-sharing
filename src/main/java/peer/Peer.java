@@ -19,6 +19,7 @@ public class Peer {
     private final PeerMetadata metadata;
 
     private final Map<Integer, Socket> socketConnectionsByNeighborID;
+    private final Map<Integer, AtomicReferenceArray> bitfieldsByNeighborID;
     private final Set<Integer> neighborsContacted;
 
     private ServerSocket listenerSocket;
@@ -28,10 +29,9 @@ public class Peer {
 
     private Logging logger;
 
-
     public Peer(final int peerID) throws IOException {
         this.peerID = peerID;
-//        this.logger = new Logging(peerID);
+        this.logger = new Logging();
 
         // Setup config parsers
         commonConfig = new CommonConfig();
@@ -40,6 +40,7 @@ public class Peer {
 
         // Initialize socket and neighbor information storage
         socketConnectionsByNeighborID = new HashMap<>();
+        bitfieldsByNeighborID = new HashMap<>();
         neighborsContacted = new HashSet<>();
 
         initializePieceIndexes();
@@ -53,7 +54,11 @@ public class Peer {
     }
 
     private void initializePieceIndexes() {
-        numberOfPieces = (int) Math.ceil((float) commonConfig.getFileSize() / (float) commonConfig.getPieceSize());
+        numberOfPieces =
+                (int)
+                        Math.ceil(
+                                (float) commonConfig.getFileSize()
+                                        / (float) commonConfig.getPieceSize());
         pieceIndexes = new AtomicReferenceArray<>(numberOfPieces);
 
         for (int pieceId = 0; pieceId < numberOfPieces; pieceId++) {
@@ -73,7 +78,8 @@ public class Peer {
 
             // Get stored socked for neighbor and setup input and output streams
             final Socket neighborSocket = socketConnectionsByNeighborID.get(neighborPeerID);
-            final ObjectOutputStream outputStream = new ObjectOutputStream(neighborSocket.getOutputStream());
+            final ObjectOutputStream outputStream =
+                    new ObjectOutputStream(neighborSocket.getOutputStream());
             outputStream.flush();
             ObjectInputStream inputStream = new ObjectInputStream(neighborSocket.getInputStream());
 
@@ -82,7 +88,14 @@ public class Peer {
             System.out.println("Sent handshake message to: " + handshakeMessage);
             outputStream.flush();
 
-            new PeerConnection(peerID, neighborSocket, neighborsContacted, pieceIndexes, outputStream, inputStream).start();
+            new PeerConnection(
+                            peerID,
+                            neighborSocket,
+                            neighborsContacted,
+                            pieceIndexes,
+                            outputStream,
+                            inputStream)
+                    .start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -98,7 +111,7 @@ public class Peer {
             neighborsContacted.add(neighborPeerID);
 
             // Log connection
-//            logger.TCP_connect(this.peerID, neighborPeerID);
+            logger.TCP_connect(this.peerID, neighborPeerID);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -122,7 +135,6 @@ public class Peer {
             }
         }
     }
-
 
     // Handles checking previously started neighbors and connects to them
     public void run() {

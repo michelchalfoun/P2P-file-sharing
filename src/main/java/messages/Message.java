@@ -4,15 +4,16 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Arrays;
 
 public class Message implements Serializable {
     private int messageLength;
     private byte messageType;
     private byte[] messagePayload;
 
-    public Message(final int messageLength, final byte messageType, final byte[] messagePayload) {
+    public Message(final int messageLength, final int messageType, final byte[] messagePayload) {
         this.messageLength = messageLength;
-        this.messageType = messageType;
+        this.messageType = (byte) messageType;
         this.messagePayload = messagePayload;
     }
 
@@ -30,5 +31,26 @@ public class Message implements Serializable {
         aOutputStream.writeInt(messageLength);
         aOutputStream.write(messageType);
         aOutputStream.write(messagePayload);
+    }
+
+    public MessageType getMessageType() {
+        return MessageType.getMessageType(messageType);
+    }
+
+    public int getMessageLength() {
+        return messageLength;
+    }
+
+    public byte[] getMessagePayload() {
+        return messagePayload;
+    }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "messageLength=" + messageLength +
+                ", messageType=" + messageType +
+                ", messagePayload=" + Arrays.toString(messagePayload) +
+                '}';
     }
 }

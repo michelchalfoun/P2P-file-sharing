@@ -42,15 +42,6 @@ public class HandshakeMessage implements Serializable {
     }
 
     @Override
-    public String toString() {
-        return "HandshakeMessage{" +
-                "HANDSHAKE_HEADER='" + HANDSHAKE_HEADER + '\'' +
-                ", ZERO_BITS=" + Arrays.toString(ZERO_BITS) +
-                ", peerID=" + peerID +
-                '}';
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -63,5 +54,14 @@ public class HandshakeMessage implements Serializable {
         int result = Objects.hash(HANDSHAKE_HEADER, peerID);
         result = 31 * result + Arrays.hashCode(ZERO_BITS);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "HandshakeMessage{" +
+                "HANDSHAKE_HEADER='" + HANDSHAKE_HEADER + '\'' +
+                ", ZERO_BITS=" + Arrays.toString(ZERO_BITS) +
+                ", peerID=" + peerID +
+                '}';
     }
 }

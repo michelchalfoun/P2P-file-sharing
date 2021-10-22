@@ -69,8 +69,24 @@ public class BitfieldPayloadTest {
         boolean[] expected = convertAtomicReferenceArray(pieces);
         boolean[] actual = convertAtomicReferenceArray(new BitfieldPayload(9, sentPayload).getPieces());
 
-        System.out.println("exp: " + expected);
-        System.out.println("act: " + actual);
+        assertTrue(Arrays.equals(expected, actual));
+    }
+
+    @Test
+    public void testBuildingPayloadForOneByteWithThreeBytes() {
+        AtomicReferenceArray<Boolean> pieces = new AtomicReferenceArray<>(20);
+        for (int i = 0; i < 20; i++) {
+            pieces.set(i, false);
+        }
+        pieces.set(3, true);
+        pieces.set(10, true);
+        pieces.set(15, true);
+        pieces.set(18, true);
+        BitfieldPayload payloadMsg = new BitfieldPayload(pieces);
+        byte[] sentPayload = payloadMsg.getPayload();
+
+        boolean[] expected = convertAtomicReferenceArray(pieces);
+        boolean[] actual = convertAtomicReferenceArray(new BitfieldPayload(20, sentPayload).getPieces());
 
         assertTrue(Arrays.equals(expected, actual));
     }
