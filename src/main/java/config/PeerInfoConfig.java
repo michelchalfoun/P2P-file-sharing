@@ -7,7 +7,11 @@ import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class PeerInfoConfig {
+/**
+ * Utility class to read and store values from CommonConfig.cfg
+ */
+public class PeerInfoConfig
+{
     private Map<Integer, PeerMetadata> peerMetadataById = new HashMap<>();
 
     public PeerInfoConfig() {

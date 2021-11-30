@@ -7,7 +7,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
 
-public class HandshakeMessage implements Serializable
+public class HandshakeMessage
+        implements Serializable
 {
     private String HANDSHAKE_HEADER = "P2PFILESHARINGPROJ";
     private byte[] ZERO_BITS = new byte[10];
@@ -29,29 +30,18 @@ public class HandshakeMessage implements Serializable
         return peerID;
     }
 
-
-    private void readObject(ObjectInputStream aInputStream) throws ClassNotFoundException, IOException
-    {
+    private void readObject(ObjectInputStream aInputStream)
+            throws ClassNotFoundException, IOException {
         HANDSHAKE_HEADER = aInputStream.readUTF();
-        for (int i = 0; i < 10;i++) aInputStream.readByte();
+        for (int i = 0; i < 10; i++) aInputStream.readByte();
         ZERO_BITS = new byte[10];
         peerID = aInputStream.readInt();
     }
 
-    private void writeObject(ObjectOutputStream aOutputStream) throws IOException
-    {
+    private void writeObject(ObjectOutputStream aOutputStream) throws IOException {
         aOutputStream.writeUTF(HANDSHAKE_HEADER);
         aOutputStream.write(ZERO_BITS);
         aOutputStream.writeInt(peerID);
-    }
-
-    @Override
-    public String toString() {
-        return "HandshakeMessage{" +
-                "HANDSHAKE_HEADER='" + HANDSHAKE_HEADER + '\'' +
-                ", ZERO_BITS=" + Arrays.toString(ZERO_BITS) +
-                ", peerID=" + peerID +
-                '}';
     }
 
     @Override
@@ -59,7 +49,9 @@ public class HandshakeMessage implements Serializable
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         HandshakeMessage that = (HandshakeMessage) o;
-        return peerID == that.peerID && HANDSHAKE_HEADER.equals(that.HANDSHAKE_HEADER) && Arrays.equals(ZERO_BITS, that.ZERO_BITS);
+        return peerID == that.peerID
+                && HANDSHAKE_HEADER.equals(that.HANDSHAKE_HEADER)
+                && Arrays.equals(ZERO_BITS, that.ZERO_BITS);
     }
 
     @Override
@@ -67,5 +59,18 @@ public class HandshakeMessage implements Serializable
         int result = Objects.hash(HANDSHAKE_HEADER, peerID);
         result = 31 * result + Arrays.hashCode(ZERO_BITS);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "HandshakeMessage{"
+                + "HANDSHAKE_HEADER='"
+                + HANDSHAKE_HEADER
+                + '\''
+                + ", ZERO_BITS="
+                + Arrays.toString(ZERO_BITS)
+                + ", peerID="
+                + peerID
+                + '}';
     }
 }

@@ -6,7 +6,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-public class CommonConfig {
+/**
+ * Utility class to read and store values from CommonConfig.cfg
+ */
+public class CommonConfig
+{
     private final int numberOfPreferredNeighbors;
     private final int unchokingInterval;
     private final int optimisticUnchokingInterval;
