@@ -61,7 +61,7 @@ public class StartRemotePeers {
         peerList.add(new PeerInfo("1003", "lin114-02.cise.ufl.edu"));
         peerList.add(new PeerInfo("1004", "lin114-03.cise.ufl.edu"));
         peerList.add(new PeerInfo("1005", "lin114-04.cise.ufl.edu"));
-        peerList.add(new PeerInfo("1006", "lin114-04.cise.ufl.edu"));
+        peerList.add(new PeerInfo("1006", "lin114-05.cise.ufl.edu"));
 
         for (PeerInfo remotePeer : peerList) {
             try {
@@ -72,7 +72,7 @@ public class StartRemotePeers {
                  * without a password. Or you can use the corressponding method
                  * of JSch which accepts a password.
                  */
-                final String password = ""; // add key password
+                final String password = "Harvardclose321"; // add key password
                 jsch.addIdentity("/Users/pabloestrada/.ssh/id_rsa", password);
                 Session session = jsch.getSession(ciseUser, remotePeer.getHostName(), 22);
                 Properties config = new Properties();

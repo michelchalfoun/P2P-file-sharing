@@ -11,10 +11,10 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
- * Main class that sets up the main Peer process (spins up all of the listener threads and keeps track of data)
+ * Main class that sets up the main Peer process (spins up all of the listener threads and keeps
+ * track of data)
  */
-public class Peer
-{
+public class Peer {
     private final int peerID;
 
     private final CommonConfig commonConfig;
@@ -24,7 +24,6 @@ public class Peer
 
     private final Map<Integer, Socket> socketConnectionsByNeighborID;
     private final Map<Integer, AtomicReferenceArray> bitfieldsByNeighborID;
-    private final Set<Integer> neighborsContacted;
 
     private ServerSocket listenerSocket;
 
@@ -45,7 +44,6 @@ public class Peer
         // Initialize socket and neighbor information storage
         socketConnectionsByNeighborID = new HashMap<>();
         bitfieldsByNeighborID = new HashMap<>();
-        neighborsContacted = new HashSet<>();
 
         initializePieceIndexes();
 
@@ -58,11 +56,9 @@ public class Peer
     }
 
     private void initializePieceIndexes() {
-        numberOfPieces =
-                (int)
-                        Math.ceil(
-                                (float) commonConfig.getFileSize()
-                                        / (float) commonConfig.getPieceSize());
+        final float fileSize = commonConfig.getFileSize();
+        final float pieceSize = commonConfig.getPieceSize();
+        numberOfPieces = (int) Math.ceil(fileSize / pieceSize);
         pieceIndexes = new AtomicReferenceArray<>(numberOfPieces);
 
         for (int pieceId = 0; pieceId < numberOfPieces; pieceId++) {
@@ -95,11 +91,11 @@ public class Peer
             new PeerConnection(
                             peerID,
                             neighborSocket,
-                            neighborsContacted,
+                            true,
                             pieceIndexes,
+                            bitfieldsByNeighborID,
                             outputStream,
-                            inputStream,
-                    bitfieldsByNeighborID)
+                            inputStream)
                     .start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -113,7 +109,6 @@ public class Peer
             final Socket neighborSocket =
                     new Socket(metadata.getHostName(), metadata.getListeningPort());
             socketConnectionsByNeighborID.put(neighborPeerID, neighborSocket);
-            neighborsContacted.add(neighborPeerID);
 
             // Log connection
             logger.TCP_connect(this.peerID, neighborPeerID);
@@ -128,7 +123,7 @@ public class Peer
         try {
             while (true) {
                 Socket socket = listenerSocket.accept();
-                new PeerConnection(peerID, socket, neighborsContacted, pieceIndexes, bitfieldsByNeighborID).start();
+                new PeerConnection(peerID, socket, pieceIndexes, bitfieldsByNeighborID).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -143,21 +138,19 @@ public class Peer
 
     // Handles checking previously started neighbors and connects to them
     public void run() {
-        peerInfoConfig
-                .getPrevPeers(peerID)
-                .forEach((neighborPeerID, metadata) -> setupConnection(neighborPeerID, metadata));
+        peerInfoConfig.getPrevPeers(peerID).forEach(this::setupConnection);
 
-        peerInfoConfig
-                .getPrevPeers(peerID)
-                .forEach((neighborPeerID, metadata) -> sendHandshake(neighborPeerID, metadata));
+        peerInfoConfig.getPrevPeers(peerID).forEach(this::sendHandshake);
 
         listenForConnections();
     }
 
     public static void main(String args[]) throws IOException {
         // Setup Peer
-        Peer client = new Peer(Integer.parseInt(args[0]));
-        System.out.println("Process " + "\u001B[31m" + args[0] + "\u001B[0m" + " running.");
+        final int peerID = Integer.parseInt(args[0]);
+        //        final int peerID = 1001;
+        final Peer client = new Peer(peerID);
+        System.out.println("Process " + "\u001B[31m" + peerID + "\u001B[0m" + " running.");
         client.run();
     }
 }

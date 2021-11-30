@@ -6,11 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-/**
- * Utility class to read and store values from CommonConfig.cfg
- */
-public class CommonConfig
-{
+/** Utility class to read and store values from CommonConfig.cfg */
+public class CommonConfig {
     private final int numberOfPreferredNeighbors;
     private final int unchokingInterval;
     private final int optimisticUnchokingInterval;
@@ -19,7 +16,7 @@ public class CommonConfig
     private final int pieceSize;
 
     public CommonConfig() {
-        Map<String, String> fileValueByKey = getConfigurationValuesByIndex();
+        final Map<String, String> fileValueByKey = getConfigurationValuesByIndex();
         numberOfPreferredNeighbors =
                 Integer.parseInt(fileValueByKey.get("NumberOfPreferredNeighbors"));
         unchokingInterval = Integer.parseInt(fileValueByKey.get("UnchokingInterval"));
@@ -46,22 +43,6 @@ public class CommonConfig
             e.printStackTrace();
         }
         return valueByKey;
-    }
-
-    public int getNumberOfPreferredNeighbors() {
-        return numberOfPreferredNeighbors;
-    }
-
-    public int getUnchokingInterval() {
-        return unchokingInterval;
-    }
-
-    public int getOptimisticUnchokingInterval() {
-        return optimisticUnchokingInterval;
-    }
-
-    public String getFileName() {
-        return fileName;
     }
 
     public int getFileSize() {

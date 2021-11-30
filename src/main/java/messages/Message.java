@@ -15,40 +15,47 @@ public class Message
 {
     private int messageLength;
     private byte messageType;
-    private byte[] messagePayload;
+    private byte[] payloadBytes;
 
-    public Message(final int messageLength, final int messageType, final byte[] messagePayload) {
-        this.messageLength = messageLength;
+    public Message(final int payloadLength, final int messageType, final byte[] payloadBytes) {
+        this.messageLength = payloadLength + 1; // Adds one to account for the message type byte
         this.messageType = (byte) messageType;
-        this.messagePayload = messagePayload;
+        this.payloadBytes = payloadBytes;
+    }
+
+    public Message(final int messageType) {
+        this.messageLength = 1; // Adds one to account for the message type byte
+        this.messageType = (byte) messageType;
+        this.payloadBytes = new byte[] {};
     }
 
     private void readObject(ObjectInputStream aInputStream) throws ClassNotFoundException, IOException {
         messageLength = aInputStream.readInt();
         messageType = aInputStream.readByte();
 
-        messagePayload = new byte[messageLength - 1];
+        payloadBytes = new byte[messageLength - 1];
+
         for (int i = 0; i < messageLength - 1; i++) {
-            messagePayload[i] = aInputStream.readByte();
+            payloadBytes[i] = aInputStream.readByte();
         }
     }
 
     private void writeObject(ObjectOutputStream aOutputStream) throws IOException {
         aOutputStream.writeInt(messageLength);
         aOutputStream.write(messageType);
-        aOutputStream.write(messagePayload);
+        aOutputStream.write(payloadBytes);
     }
 
     public MessageType getMessageType() {
         return MessageType.getMessageType(messageType);
     }
 
-    public int getMessageLength() {
-        return messageLength;
+    public int getPayloadLength() {
+        return messageLength - 1;
     }
 
-    public byte[] getMessagePayload() {
-        return messagePayload;
+    public byte[] getPayloadBytes() {
+        return payloadBytes;
     }
 
     @Override
@@ -56,7 +63,7 @@ public class Message
         return "Message{" +
                 "messageLength=" + messageLength +
                 ", messageType=" + messageType +
-                ", messagePayload=" + Arrays.toString(messagePayload) +
+                ", messagePayload=" + Arrays.toString(payloadBytes) +
                 '}';
     }
 }
