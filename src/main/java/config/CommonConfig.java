@@ -15,6 +15,8 @@ public class CommonConfig {
     private final int fileSize;
     private final int pieceSize;
 
+
+
     public CommonConfig() {
         final Map<String, String> fileValueByKey = getConfigurationValuesByIndex();
         numberOfPreferredNeighbors =
@@ -48,8 +50,10 @@ public class CommonConfig {
     public int getFileSize() {
         return fileSize;
     }
-
     public int getPieceSize() {
         return pieceSize;
     }
+
+    public int getUnchokingInterval() { return unchokingInterval; }
+    public int getOptimisticUnchokingInterval() { return optimisticUnchokingInterval; }
 }

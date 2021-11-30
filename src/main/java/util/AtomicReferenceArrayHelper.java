@@ -5,10 +5,19 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class AtomicReferenceArrayHelper
 {
-    public static boolean isEqual(final AtomicReferenceArray<Boolean> piecesOne, final AtomicReferenceArray<Boolean> piecesTwo) {
-        boolean[] convertedPieces = convertAtomicReferenceArray(piecesOne);
-        boolean[] currentPieces = convertAtomicReferenceArray(piecesTwo);
-        return Arrays.equals(convertedPieces, currentPieces);
+    public static boolean isInterested(final AtomicReferenceArray<Boolean> peer, final AtomicReferenceArray<Boolean> neighbor) {
+        boolean isInterested = false;
+
+        System.out.println("peer: " + peer.length());
+        System.out.println("neighbor: " + neighbor.length());
+
+        for (int index = 0; index < neighbor.length(); index++) {
+            if (neighbor.get(index) && !peer.get(index)) {
+                isInterested = true;
+            }
+        }
+
+        return isInterested;
     }
 
     // Convert AtomicReferenceArray<Boolean> to boolean[]

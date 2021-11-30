@@ -2,6 +2,7 @@ package peer;
 
 import config.CommonConfig;
 import config.PeerInfoConfig;
+import neighbor.Neighbor;
 import timer.UnchokingTimer;
 import timer.OptimisticUnchokingTimer;
 import messages.HandshakeMessage;
@@ -28,14 +29,18 @@ public class Peer {
 
     private final PeerMetadata metadata;
 
-    private final Map<Integer, Socket> socketConnectionsByNeighborID;
-    private final Map<Integer, AtomicReferenceArray> bitfieldsByNeighborID;
-    private final Map<Integer, Boolean> interestedByNeighborID;
+//    private final Map<Integer, Socket> socketConnectionsByNeighborID;
+//    private final Map<Integer, AtomicReferenceArray> bitfieldsByNeighborID;
+//    private final Map<Integer, Boolean> interestedByNeighborID;
+
+    private final Map<Integer, Neighbor> neighborData;
 
     private ServerSocket listenerSocket;
 
     private AtomicReferenceArray<Boolean> pieceIndexes;
     private int numberOfPieces;
+
+    private ArrayList<Integer> preferredNeighbors;
 
     private Logging logger;
 
@@ -47,15 +52,10 @@ public class Peer {
         commonConfig = new CommonConfig();
         peerInfoConfig = new PeerInfoConfig();
 
-        unchokingTimer = new UnchokingTimer();
-        optimisticUnchokingTimer = new OptimisticUnchokingTimer();
-
         metadata = peerInfoConfig.getPeerInfo(peerID);
 
         // Initialize socket and neighbor information storage
-        socketConnectionsByNeighborID = new ConcurrentHashMap<>();
-        bitfieldsByNeighborID = new ConcurrentHashMap<>();
-        interestedByNeighborID = new ConcurrentHashMap<>();
+        neighborData = new ConcurrentHashMap<>();
 
         initializePieceIndexes();
 
@@ -89,7 +89,7 @@ public class Peer {
         try {
 
             // Get stored socked for neighbor and setup input and output streams
-            final Socket neighborSocket = socketConnectionsByNeighborID.get(neighborPeerID);
+            final Socket neighborSocket = neighborData.get(neighborPeerID).getSocket();
             final ObjectOutputStream outputStream =
                     new ObjectOutputStream(neighborSocket.getOutputStream());
             outputStream.flush();
@@ -100,13 +100,14 @@ public class Peer {
             System.out.println("Sent handshake message to: " + handshakeMessage);
             outputStream.flush();
 
+            // 1002
+            // neighborsMap.put(neighborPeerID, neighbor())
             new PeerConnection(
                             peerID,
                             neighborSocket,
                             true,
                             pieceIndexes,
-                            bitfieldsByNeighborID,
-                            interestedByNeighborID,
+                            neighborData,
                             outputStream,
                             inputStream)
                     .start();
@@ -121,7 +122,7 @@ public class Peer {
 
             final Socket neighborSocket =
                     new Socket(metadata.getHostName(), metadata.getListeningPort());
-            socketConnectionsByNeighborID.put(neighborPeerID, neighborSocket);
+            neighborData.put(neighborPeerID, new Neighbor(neighborSocket, neighborPeerID));
 
             // Log connection
             logger.TCP_connect(this.peerID, neighborPeerID);
@@ -136,7 +137,9 @@ public class Peer {
         try {
             while (true) {
                 Socket socket = listenerSocket.accept();
-                new PeerConnection(peerID, socket, pieceIndexes, bitfieldsByNeighborID, interestedByNeighborID).start();
+                // 1001
+                // neighborsMap.put(1002, neighbor())
+                new PeerConnection(peerID, socket, pieceIndexes, neighborData).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -152,10 +155,15 @@ public class Peer {
     // Handles checking previously started neighbors and connects to them
     public void run() {
         peerInfoConfig.getPrevPeers(peerID).forEach(this::setupConnection);
-
         peerInfoConfig.getPrevPeers(peerID).forEach(this::sendHandshake);
 
+        System.out.println("Unchoking interval: " + commonConfig.getUnchokingInterval());
+        System.out.println("Optimistic unchoking interval: " + commonConfig.getOptimisticUnchokingInterval());
+
+        unchokingTimer = new UnchokingTimer(commonConfig.getUnchokingInterval(), neighborData);
         unchokingTimer.start();
+
+        optimisticUnchokingTimer = new OptimisticUnchokingTimer(commonConfig.getOptimisticUnchokingInterval());
         optimisticUnchokingTimer.start();
 
         listenForConnections();
