@@ -2,12 +2,15 @@ package peer;
 
 import config.CommonConfig;
 import config.PeerInfoConfig;
+import timer.UnchokingTimer;
+import timer.OptimisticUnchokingTimer;
 import messages.HandshakeMessage;
 import logging.Logging;
 
 import java.net.*;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
@@ -20,10 +23,14 @@ public class Peer {
     private final CommonConfig commonConfig;
     private final PeerInfoConfig peerInfoConfig;
 
+    private UnchokingTimer unchokingTimer;
+    private OptimisticUnchokingTimer optimisticUnchokingTimer;
+
     private final PeerMetadata metadata;
 
     private final Map<Integer, Socket> socketConnectionsByNeighborID;
     private final Map<Integer, AtomicReferenceArray> bitfieldsByNeighborID;
+    private final Map<Integer, Boolean> interestedByNeighborID;
 
     private ServerSocket listenerSocket;
 
@@ -39,11 +46,16 @@ public class Peer {
         // Setup config parsers
         commonConfig = new CommonConfig();
         peerInfoConfig = new PeerInfoConfig();
+
+        unchokingTimer = new UnchokingTimer();
+        optimisticUnchokingTimer = new OptimisticUnchokingTimer();
+
         metadata = peerInfoConfig.getPeerInfo(peerID);
 
         // Initialize socket and neighbor information storage
-        socketConnectionsByNeighborID = new HashMap<>();
-        bitfieldsByNeighborID = new HashMap<>();
+        socketConnectionsByNeighborID = new ConcurrentHashMap<>();
+        bitfieldsByNeighborID = new ConcurrentHashMap<>();
+        interestedByNeighborID = new ConcurrentHashMap<>();
 
         initializePieceIndexes();
 
@@ -94,6 +106,7 @@ public class Peer {
                             true,
                             pieceIndexes,
                             bitfieldsByNeighborID,
+                            interestedByNeighborID,
                             outputStream,
                             inputStream)
                     .start();
@@ -123,7 +136,7 @@ public class Peer {
         try {
             while (true) {
                 Socket socket = listenerSocket.accept();
-                new PeerConnection(peerID, socket, pieceIndexes, bitfieldsByNeighborID).start();
+                new PeerConnection(peerID, socket, pieceIndexes, bitfieldsByNeighborID, interestedByNeighborID).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -141,6 +154,9 @@ public class Peer {
         peerInfoConfig.getPrevPeers(peerID).forEach(this::setupConnection);
 
         peerInfoConfig.getPrevPeers(peerID).forEach(this::sendHandshake);
+
+        unchokingTimer.start();
+        optimisticUnchokingTimer.start();
 
         listenForConnections();
     }
