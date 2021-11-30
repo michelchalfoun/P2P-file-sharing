@@ -15,7 +15,7 @@ public class BitfieldPayloadTest {
             pieces.set(i, true);
         }
         BitfieldPayload payloadMsg = new BitfieldPayload(pieces);
-        byte[] sentPayload = payloadMsg.getPayload();
+        byte[] sentPayload = payloadMsg.getBytes();
 
         boolean[] expected = convertAtomicReferenceArray(pieces);
         boolean[] actual = convertAtomicReferenceArray(new BitfieldPayload(8, sentPayload).getPieces());
@@ -31,7 +31,7 @@ public class BitfieldPayloadTest {
         }
         pieces.set(2, false);
         BitfieldPayload payloadMsg = new BitfieldPayload(pieces);
-        byte[] sentPayload = payloadMsg.getPayload();
+        byte[] sentPayload = payloadMsg.getBytes();
 
         boolean[] expected = convertAtomicReferenceArray(pieces);
         boolean[] actual = convertAtomicReferenceArray(new BitfieldPayload(8, sentPayload).getPieces());
@@ -48,7 +48,7 @@ public class BitfieldPayloadTest {
         }
         pieces.set(3, true);
         BitfieldPayload payloadMsg = new BitfieldPayload(pieces);
-        byte[] sentPayload = payloadMsg.getPayload();
+        byte[] sentPayload = payloadMsg.getBytes();
 
         boolean[] expected = convertAtomicReferenceArray(pieces);
         boolean[] actual = convertAtomicReferenceArray(new BitfieldPayload(8, sentPayload).getPieces());
@@ -64,7 +64,7 @@ public class BitfieldPayloadTest {
         }
         pieces.set(3, true);
         BitfieldPayload payloadMsg = new BitfieldPayload(pieces);
-        byte[] sentPayload = payloadMsg.getPayload();
+        byte[] sentPayload = payloadMsg.getBytes();
 
         boolean[] expected = convertAtomicReferenceArray(pieces);
         boolean[] actual = convertAtomicReferenceArray(new BitfieldPayload(9, sentPayload).getPieces());
@@ -83,7 +83,7 @@ public class BitfieldPayloadTest {
         pieces.set(15, true);
         pieces.set(18, true);
         BitfieldPayload payloadMsg = new BitfieldPayload(pieces);
-        byte[] sentPayload = payloadMsg.getPayload();
+        byte[] sentPayload = payloadMsg.getBytes();
 
         boolean[] expected = convertAtomicReferenceArray(pieces);
         boolean[] actual = convertAtomicReferenceArray(new BitfieldPayload(20, sentPayload).getPieces());

@@ -8,18 +8,17 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  * us with the conversion of the representation of bitfields in order to facilitate the logic to
  * compare bitfields
  */
-public class BitfieldPayload {
-    private int messageLength;
+public class BitfieldPayload implements Payload {
     private byte[] payload;
     private AtomicReferenceArray<Boolean> pieces;
 
     // Bits to bytes
     public BitfieldPayload(final AtomicReferenceArray<Boolean> pieces) {
-        messageLength = (int) Math.ceil((float) pieces.length() / 8.0f);
-        payload = new byte[messageLength];
+        final int payloadLength = (int) Math.ceil(pieces.length() / 8.0f);
+        payload = new byte[payloadLength];
 
         for (int i = 0; i < pieces.length(); i += 8) {
-            StringBuilder bitArray = new StringBuilder();
+            final StringBuilder bitArray = new StringBuilder();
             for (int j = Math.min(pieces.length() - i - 1, 8 - 1); j >= 0; j--) {
                 bitArray.append(pieces.get(i + j).equals(true) ? '1' : '0');
             }
@@ -29,16 +28,15 @@ public class BitfieldPayload {
     }
 
     // Bytes to bits
-    public BitfieldPayload(final int messageLength, byte[] payloadInBytes) {
-        pieces = new AtomicReferenceArray<>(messageLength);
-        System.out.println(pieces.length());
+    public BitfieldPayload(final int payloadLength, byte[] payloadInBytes) {
+        pieces = new AtomicReferenceArray<>(payloadLength);
         for (int i = 0; i < payloadInBytes.length; i++) {
             String binary =
                     reverse(
                             String.format("%8s", Integer.toBinaryString(payloadInBytes[i] & 0xFF))
                                     .replace(" ", "0"));
 
-            for (int j = 0; j < Math.min(messageLength - (i * 8), 8); j++) {
+            for (int j = 0; j < Math.min(payloadLength - (i * 8), 8); j++) {
                 int index = (i * 8) + j;
                 pieces.set(index, binary.charAt(j) == '1');
             }
@@ -58,23 +56,18 @@ public class BitfieldPayload {
         return pieces;
     }
 
-    public int getMessageLength() {
-        return messageLength;
-    }
-
-    public byte[] getPayload() {
-        return payload;
-    }
-
     @Override
     public String toString() {
         return "BitfieldPayload{"
-                + "messageLength="
-                + messageLength
                 + ", payload="
                 + Arrays.toString(payload)
                 + ", pieces="
                 + pieces
                 + '}';
+    }
+
+    @Override
+    public byte[] getBytes() {
+        return this.payload;
     }
 }

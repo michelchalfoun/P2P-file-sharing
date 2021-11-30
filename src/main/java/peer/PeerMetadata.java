@@ -1,16 +1,17 @@
 package peer;
 
-/**
- * Metadata object that contains all of the information from PeerInfo.cfg for a specific row
- */
-public class PeerMetadata
-{
+/** Metadata object that contains all of the information from PeerInfo.cfg for a specific row */
+public class PeerMetadata {
     private final int peerID;
     private final String hostName;
     private final int listeningPort;
     private final boolean hasFile;
 
-    public PeerMetadata(final int peerID, final String hostName, final int listeningPort, final boolean hasFile) {
+    public PeerMetadata(
+            final int peerID,
+            final String hostName,
+            final int listeningPort,
+            final boolean hasFile) {
         this.peerID = peerID;
         this.hostName = hostName;
         this.listeningPort = listeningPort;
@@ -35,11 +36,16 @@ public class PeerMetadata
 
     @Override
     public String toString() {
-        return "PeerMetadata{" +
-                "peerID=" + peerID +
-                ", hostName='" + hostName + '\'' +
-                ", listeningPort=" + listeningPort +
-                ", hasFile=" + hasFile +
-                '}';
+        return "PeerMetadata{"
+                + "peerID="
+                + peerID
+                + ", hostName='"
+                + hostName
+                + '\''
+                + ", listeningPort="
+                + listeningPort
+                + ", hasFile="
+                + hasFile
+                + '}';
     }
 }

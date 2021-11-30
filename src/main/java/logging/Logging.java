@@ -1,5 +1,6 @@
 package logging;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.logging.FileHandler;
@@ -7,11 +8,10 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 /** Logger class to log peer actions */
-public class Logging
-{
+public class Logging {
     // Setup to be used throughout logging functions
     Logger logger;
-    FileHandler fh;
+    FileHandler fileHandler;
     SimpleFormatter formatter;
 
     public Logging() throws IOException {
@@ -19,18 +19,27 @@ public class Logging
         this.logger.setUseParentHandlers(false);
     }
 
+    private void validateLogFolder() {
+        final File directoryFolder = new File(Paths.get(System.getProperty("user.dir")) + "/logs");
+        if (!directoryFolder.exists()) {
+            directoryFolder.mkdir();
+        }
+    }
+
     private void setFile(final int peerID_1) throws IOException {
+        validateLogFolder();
+
         // Might need to change this to protect from possible path issues
-        this.fh =
+        this.fileHandler =
                 new FileHandler(
                         Paths.get(System.getProperty("user.dir"))
                                 + "/logs/log_peer_"
                                 + peerID_1
                                 + ".log",
                         true);
-        logger.addHandler(this.fh);
+        logger.addHandler(this.fileHandler);
         this.formatter = new SimpleFormatter();
-        this.fh.setFormatter(this.formatter);
+        this.fileHandler.setFormatter(this.formatter);
     }
 
     public void TCP_connect(final int peerID_1, final int peerID_2) {

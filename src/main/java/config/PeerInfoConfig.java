@@ -7,19 +7,17 @@ import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Utility class to read and store values from CommonConfig.cfg
- */
-public class PeerInfoConfig
-{
-    private Map<Integer, PeerMetadata> peerMetadataById = new HashMap<>();
+/** Utility class to read and store values from PeerInfo.cfg */
+public class PeerInfoConfig {
+    private Map<Integer, PeerMetadata> peerMetadataById;
 
     public PeerInfoConfig() {
+        peerMetadataById = new HashMap<>();
         try {
-            final File myObj = new File(System.getProperty("user.dir") + "/PeerInfo.cfg");
-            final Scanner myReader = new Scanner(myObj);
-            while (myReader.hasNextLine()) {
-                final String data = myReader.nextLine();
+            final File peerInfoFile = new File(System.getProperty("user.dir") + "/PeerInfo.cfg");
+            final Scanner scanner = new Scanner(peerInfoFile);
+            while (scanner.hasNextLine()) {
+                final String data = scanner.nextLine();
                 final String[] parsedData = data.split(" ");
                 final int peerID = Integer.parseInt(parsedData[0]);
                 peerMetadataById.put(
@@ -30,8 +28,8 @@ public class PeerInfoConfig
                                 Integer.parseInt(parsedData[2]),
                                 parsedData[3].equals("1")));
             }
-            myReader.close();
-        } catch (FileNotFoundException e) {
+            scanner.close();
+        } catch (final FileNotFoundException e) {
             System.out.println("An error occurred.");
             e.printStackTrace();
         }
