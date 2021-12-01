@@ -1,6 +1,8 @@
 package messages.payload;
 
 import messages.Message;
+import messages.payload.impl.BitfieldPayload;
+import messages.payload.impl.PieceIndexPayload;
 
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
@@ -10,15 +12,15 @@ public class PayloadFactory
         return new BitfieldPayload(pieces);
     }
 
-    public BitfieldPayload createBitfieldPayload(final Message message) {
-        return new BitfieldPayload(message.getPayloadLength(), message.getPayloadBytes());
+    public BitfieldPayload createBitfieldPayload(final Message message, final int numberOfPieces) {
+        return new BitfieldPayload(numberOfPieces, message.getPayloadBytes());
     }
 
-    public HavePayload createHavePayload(final int pieceId) {
-        return new HavePayload(pieceId);
+    public PieceIndexPayload createHavePayload(final int pieceId) {
+        return new PieceIndexPayload(pieceId);
     }
 
-    public HavePayload createHavePayload(final Message message) {
-        return new HavePayload(message.getPayloadBytes());
+    public PieceIndexPayload createHavePayload(final Message message) {
+        return new PieceIndexPayload(message.getPayloadBytes());
     }
 }

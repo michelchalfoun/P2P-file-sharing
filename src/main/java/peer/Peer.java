@@ -3,6 +3,7 @@ package peer;
 import config.CommonConfig;
 import config.PeerInfoConfig;
 import neighbor.Neighbor;
+import pieces.PieceManager;
 import timer.UnchokingTimer;
 import timer.OptimisticUnchokingTimer;
 import messages.HandshakeMessage;
@@ -19,6 +20,8 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  * track of data)
  */
 public class Peer {
+    private Logging logger;
+
     private final int peerID;
 
     private final CommonConfig commonConfig;
@@ -27,22 +30,20 @@ public class Peer {
     private UnchokingTimer unchokingTimer;
     private OptimisticUnchokingTimer optimisticUnchokingTimer;
 
-    private final PeerMetadata metadata;
 
 //    private final Map<Integer, Socket> socketConnectionsByNeighborID;
 //    private final Map<Integer, AtomicReferenceArray> bitfieldsByNeighborID;
 //    private final Map<Integer, Boolean> interestedByNeighborID;
 
     private final Map<Integer, Neighbor> neighborData;
+    private AtomicReferenceArray<Boolean> pieceIndexes;
+    private final PeerMetadata metadata;
 
     private ServerSocket listenerSocket;
 
-    private AtomicReferenceArray<Boolean> pieceIndexes;
     private int numberOfPieces;
 
     private ArrayList<Integer> preferredNeighbors;
-
-    private Logging logger;
 
     public Peer(final int peerID) throws IOException {
         this.peerID = peerID;
@@ -51,7 +52,6 @@ public class Peer {
         // Setup config parsers
         commonConfig = new CommonConfig();
         peerInfoConfig = new PeerInfoConfig();
-
         metadata = peerInfoConfig.getPeerInfo(peerID);
 
         // Initialize socket and neighbor information storage
@@ -100,8 +100,7 @@ public class Peer {
             System.out.println("Sent handshake message to: " + handshakeMessage);
             outputStream.flush();
 
-            // 1002
-            // neighborsMap.put(neighborPeerID, neighbor())
+            final PieceManager pieceManager = new PieceManager(peerID, commonConfig.getFileName(), commonConfig.getFileSize(), commonConfig.getPieceSize(), metadata.isHasFile());
             new PeerConnection(
                             peerID,
                             neighborSocket,
@@ -109,7 +108,8 @@ public class Peer {
                             pieceIndexes,
                             neighborData,
                             outputStream,
-                            inputStream)
+                            inputStream,
+                    pieceManager)
                     .start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -137,9 +137,8 @@ public class Peer {
         try {
             while (true) {
                 Socket socket = listenerSocket.accept();
-                // 1001
-                // neighborsMap.put(1002, neighbor())
-                new PeerConnection(peerID, socket, pieceIndexes, neighborData).start();
+                final PieceManager pieceManager = new PieceManager(peerID, commonConfig.getFileName(), commonConfig.getFileSize(), commonConfig.getPieceSize(), metadata.isHasFile());
+                new PeerConnection(peerID, socket, pieceIndexes, neighborData, pieceManager).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -172,7 +171,7 @@ public class Peer {
     public static void main(String args[]) throws IOException {
         // Setup Peer
         final int peerID = Integer.parseInt(args[0]);
-        //        final int peerID = 1001;
+//                final int peerID = 1002;
         final Peer client = new Peer(peerID);
         System.out.println("Process " + "\u001B[31m" + peerID + "\u001B[0m" + " running.");
         client.run();

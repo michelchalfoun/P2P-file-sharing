@@ -4,15 +4,18 @@ import messages.HandshakeMessage;
 import messages.Message;
 import messages.MessageFactory;
 import messages.MessageType;
-import messages.payload.BitfieldPayload;
+import messages.payload.impl.BitfieldPayload;
 import messages.payload.PayloadFactory;
+import pieces.PieceManager;
 import util.AtomicReferenceArrayHelper;
 import neighbor.Neighbor;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.nio.file.Paths;
 import java.util.Map;
 
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -35,14 +38,35 @@ public class PeerConnection extends Thread {
 
     private final MessageFactory messageFactory;
     private final PayloadFactory payloadFactory;
+    private final PieceManager pieceManager;
+
+    public PeerConnection(
+            final int peerID,
+            final Socket neighborSocket,
+            final boolean hasSentHandshakeMessage,
+            final AtomicReferenceArray<Boolean> pieces,
+            final Map<Integer, Neighbor> neighborData,
+            final PieceManager pieceManager) {
+        connection = neighborSocket;
+        messageFactory = new MessageFactory();
+        payloadFactory = new PayloadFactory();
+        hasSentBitfieldMessage = false;
+        isHandshakeDone = false;
+        this.peerID = peerID;
+        this.hasSentHandshakeMessage = hasSentHandshakeMessage;
+        this.neighborData = neighborData;
+        this.pieces = pieces;
+        this.pieceManager = pieceManager;
+    }
 
     public PeerConnection(
             final int peerID,
             final Socket neighborSocket,
             final AtomicReferenceArray<Boolean> pieces,
-            final Map<Integer, Neighbor> neighborData) {
+            final Map<Integer, Neighbor> neighborData,
+            final PieceManager pieceManager) {
 
-        this(peerID, neighborSocket, false, pieces, neighborData);
+        this(peerID, neighborSocket, false, pieces, neighborData, pieceManager);
         try {
             outputStream = new ObjectOutputStream(connection.getOutputStream());
             outputStream.flush();
@@ -57,27 +81,11 @@ public class PeerConnection extends Thread {
             final Socket neighborSocket,
             final boolean hasSentHandshakeMessage,
             final AtomicReferenceArray<Boolean> pieces,
-            final Map<Integer, Neighbor> neighborData) {
-        connection = neighborSocket;
-        messageFactory = new MessageFactory();
-        payloadFactory = new PayloadFactory();
-        hasSentBitfieldMessage = false;
-        isHandshakeDone = false;
-        this.peerID = peerID;
-        this.hasSentHandshakeMessage = hasSentHandshakeMessage;
-        this.neighborData = neighborData;
-        this.pieces = pieces;
-    }
-
-    public PeerConnection(
-            final int peerID,
-            final Socket neighborSocket,
-            final boolean hasSentHandshakeMessage,
-            final AtomicReferenceArray<Boolean> pieces,
             final Map<Integer, Neighbor> neighborData,
             final ObjectOutputStream outputStream,
-            final ObjectInputStream inputStream) {
-        this(peerID, neighborSocket, hasSentHandshakeMessage, pieces, neighborData);
+            final ObjectInputStream inputStream,
+            final PieceManager pieceManager) {
+        this(peerID, neighborSocket, hasSentHandshakeMessage, pieces, neighborData, pieceManager);
         this.inputStream = inputStream;
         this.outputStream = outputStream;
     }
@@ -140,7 +148,6 @@ public class PeerConnection extends Thread {
         final Message message = (Message) inputStream.readObject();
         System.out.println(message);
 
-        // All other type of messages
         switch (message.getMessageType()) {
             case CHOKE:
                 neighborData.get(neighborID).setChoke(true);
@@ -168,14 +175,12 @@ public class PeerConnection extends Thread {
                 }
                 break;
             case BITFIELD:
-                System.out.println("Received bitfield from " + neighborID);
-                final BitfieldPayload payload = payloadFactory.createBitfieldPayload(message);
+                final BitfieldPayload payload = payloadFactory.createBitfieldPayload(message, pieces.length());
+                System.out.println("Received bitfield from " + neighborID + " " + payload);
+
                 neighborData.get(neighborID).setBitfield(payload.getPieces());
+                sendIntentMessage(!AtomicReferenceArrayHelper.isInterested(pieces, payload.getPieces()));
 
-                // TODO fix equality logic to check for bitfield properly
-                System.out.println("EQUALITY - " + AtomicReferenceArrayHelper.isInterested(payload.getPieces(), pieces));
-
-                sendIntentMessage(!AtomicReferenceArrayHelper.isInterested(payload.getPieces(), pieces));
                 if (!hasSentBitfieldMessage) {
                     sendBitfieldPayload();
                 }
@@ -183,10 +188,23 @@ public class PeerConnection extends Thread {
             case REQUEST:
                 final int requestedPieceID = payloadFactory.createHavePayload(message).getPieceID();
 
+                // TODO
+//                Even though peer A sends a ‘request’ message to peer B, it may not receive a ‘piece’
+//                message corresponding to it. This situation happens when peer B re-determines
+//                preferred neighbors or optimistically unchoked a neighbor and peer A is choked as the
+//                result before peer B responds to peer A. Your program should consider this case.
+                if (!neighborData.get(neighborID).getChoke()) {
+                    sendPiece(requestedPieceID);
+                }
                 break;
             case PIECE:
                 break;
         }
+    }
+
+    private void sendPiece(final int pieceID) {
+        final byte[] pieceBytes = pieceManager.getPiece(pieceID);
+
     }
 
     // Send message with interested/uninterested intent

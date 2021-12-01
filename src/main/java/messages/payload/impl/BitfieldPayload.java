@@ -1,4 +1,6 @@
-package messages.payload;
+package messages.payload.impl;
+
+import messages.payload.Payload;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -28,15 +30,16 @@ public class BitfieldPayload implements Payload {
     }
 
     // Bytes to bits
-    public BitfieldPayload(final int payloadLength, byte[] payloadInBytes) {
-        pieces = new AtomicReferenceArray<>(payloadLength);
+    public BitfieldPayload(final int numberOfPieces, byte[] payloadInBytes) {
+        System.out.println("PAYLOAD BYTES SIZE: " + payloadInBytes.length);
+        pieces = new AtomicReferenceArray<>(numberOfPieces);
         for (int i = 0; i < payloadInBytes.length; i++) {
             String binary =
                     reverse(
                             String.format("%8s", Integer.toBinaryString(payloadInBytes[i] & 0xFF))
                                     .replace(" ", "0"));
 
-            for (int j = 0; j < Math.min(payloadLength - (i * 8), 8); j++) {
+            for (int j = 0; j < Math.min(numberOfPieces - (i * 8), 8); j++) {
                 int index = (i * 8) + j;
                 pieces.set(index, binary.charAt(j) == '1');
             }

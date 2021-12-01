@@ -32,3 +32,15 @@ Nov 30, 2021 6:03:41 PM logging.Logging TCP_connect
 INFO: Peer 1002 makes a connection to Peer 1001.
 Nov 30, 2021 6:10:10 PM logging.Logging TCP_connect
 INFO: Peer 1002 makes a connection to Peer 1001.
+Nov 30, 2021 8:58:42 PM logging.Logging TCP_connect
+INFO: Peer 1002 makes a connection to Peer 1001.
+Nov 30, 2021 9:01:34 PM logging.Logging TCP_connect
+INFO: Peer 1002 makes a connection to Peer 1001.
+Nov 30, 2021 9:02:18 PM logging.Logging TCP_connect
+INFO: Peer 1002 makes a connection to Peer 1001.
+Nov 30, 2021 9:03:22 PM logging.Logging TCP_connect
+INFO: Peer 1002 makes a connection to Peer 1001.
+Nov 30, 2021 9:09:13 PM logging.Logging TCP_connect
+INFO: Peer 1002 makes a connection to Peer 1001.
+Nov 30, 2021 9:19:04 PM logging.Logging TCP_connect
+INFO: Peer 1002 makes a connection to Peer 1001.

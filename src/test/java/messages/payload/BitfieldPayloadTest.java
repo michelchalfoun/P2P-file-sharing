@@ -1,5 +1,6 @@
 //package messages.payload;
 //
+//import messages.payload.impl.BitfieldPayload;
 //import org.junit.Test;
 //
 //import java.util.Arrays;

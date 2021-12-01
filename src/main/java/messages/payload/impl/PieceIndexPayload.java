@@ -1,16 +1,18 @@
-package messages.payload;
+package messages.payload.impl;
+
+import messages.payload.Payload;
 
 import java.io.*;
 
-public class HavePayload implements Payload {
+public class PieceIndexPayload implements Payload {
 
     private int pieceID;
 
-    public HavePayload(final int pieceID) {
+    public PieceIndexPayload(final int pieceID) {
         this.pieceID = pieceID;
     }
 
-    public HavePayload(final byte[] payloadInBytes) {
+    public PieceIndexPayload(final byte[] payloadInBytes) {
         try {
             this.pieceID = bytesToInt(payloadInBytes);
         } catch (IOException e) {
