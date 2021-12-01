@@ -30,18 +30,11 @@ public class Peer {
     private UnchokingTimer unchokingTimer;
     private OptimisticUnchokingTimer optimisticUnchokingTimer;
 
-
-//    private final Map<Integer, Socket> socketConnectionsByNeighborID;
-//    private final Map<Integer, AtomicReferenceArray> bitfieldsByNeighborID;
-//    private final Map<Integer, Boolean> interestedByNeighborID;
-
     private final Map<Integer, Neighbor> neighborData;
     private AtomicReferenceArray<Boolean> pieceIndexes;
     private final PeerMetadata metadata;
 
     private ServerSocket listenerSocket;
-
-    private int numberOfPieces;
 
     private ArrayList<Integer> preferredNeighbors;
 
@@ -70,7 +63,7 @@ public class Peer {
     private void initializePieceIndexes() {
         final float fileSize = commonConfig.getFileSize();
         final float pieceSize = commonConfig.getPieceSize();
-        numberOfPieces = (int) Math.ceil(fileSize / pieceSize);
+        final int numberOfPieces = (int) Math.ceil(fileSize / pieceSize);
         pieceIndexes = new AtomicReferenceArray<>(numberOfPieces);
 
         for (int pieceId = 0; pieceId < numberOfPieces; pieceId++) {

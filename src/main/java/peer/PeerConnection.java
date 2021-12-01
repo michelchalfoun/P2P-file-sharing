@@ -6,6 +6,7 @@ import messages.MessageFactory;
 import messages.MessageType;
 import messages.payload.impl.BitfieldPayload;
 import messages.payload.PayloadFactory;
+import messages.payload.impl.PiecePayload;
 import pieces.PieceManager;
 import util.AtomicReferenceArrayHelper;
 import neighbor.Neighbor;
@@ -198,13 +199,36 @@ public class PeerConnection extends Thread {
                 }
                 break;
             case PIECE:
+                final PiecePayload piecePayload = payloadFactory.createPiecePayload(message);
+                pieceManager.savePiece(piecePayload.getPieceID(), piecePayload.getPayload());
+                pieces.set(piecePayload.getPieceID(), true);
+                if (hasAllPieces()) {
+                    pieceManager.consolidatePiecesIntoFile();
+                }
                 break;
         }
     }
 
+    private boolean hasAllPieces() {
+        for (int index = 0; index < pieces.length(); index++) {
+            if (!pieces.get(index)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private void sendPiece(final int pieceID) {
         final byte[] pieceBytes = pieceManager.getPiece(pieceID);
-
+        final Message pieceMessage =
+                messageFactory.createMessage(
+                        payloadFactory.createPiecePayload(pieceID, pieceBytes), MessageType.PIECE);
+        try {
+            outputStream.writeObject(pieceMessage);
+            outputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     // Send message with interested/uninterested intent
