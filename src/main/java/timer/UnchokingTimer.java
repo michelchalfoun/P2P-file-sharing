@@ -5,6 +5,7 @@ import neighbor.Neighbor;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.stream.Collectors;
 
 public class UnchokingTimer extends Thread {
 
@@ -12,20 +13,39 @@ public class UnchokingTimer extends Thread {
     private final Map<Integer, Neighbor> neighborData;
     private final int interval;
 
-    public UnchokingTimer(int seconds, Map<Integer, Neighbor> neighborData) {
-        interval = seconds;
-        timer = new Timer();
+    public UnchokingTimer(final int intervalInSeconds, final Map<Integer, Neighbor> neighborData) {
+        this.interval = intervalInSeconds;
         this.neighborData = neighborData;
+        timer = new Timer();
     }
 
     public void run() {
         timer = new Timer();
-        TimerTask task = new UnchokeTask();
-        timer.schedule(task, 0, interval * 1000L);
+        final TimerTask task = new UnchokeTask();
+        final long intervalInMs = interval * 1000L;
+        timer.schedule(task, intervalInMs, intervalInMs);
     }
 
     class UnchokeTask extends TimerTask {
         public void run() {
+            // A -> B,C,D
+            //      5,15,0
+            //      0.5, 1.5, 0
+            // interval = 10sec
+
+            // B, C
+            // B -> unchoke message
+            // C -> unchoke message
+
+            final Map<Neighbor, Float> downloadRatesByNeighbor =
+                    neighborData.entrySet().stream()
+                            .collect(Collectors.toMap(
+                                            Map.Entry::getValue,
+                                            entry ->
+                                                    (float) entry.getValue().getNumberOfDownloadedBytes() / (float) interval));
+
+
+
             System.out.println("Unchoking Ran");
             System.out.println(neighborData);
         }

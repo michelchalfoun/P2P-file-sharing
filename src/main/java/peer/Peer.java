@@ -14,13 +14,14 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReferenceArray;
+import java.util.stream.Collectors;
 
 /**
  * Main class that sets up the main Peer process (spins up all of the listener threads and keeps
  * track of data)
  */
 public class Peer {
-    private Logging logger;
+    private final Logging logger;
 
     private final int peerID;
 
@@ -36,9 +37,11 @@ public class Peer {
 
     private ServerSocket listenerSocket;
 
-    private ArrayList<Integer> preferredNeighbors;
+//    private ArrayList<Integer> preferredNeighbors;
 
     public Peer(final int peerID) throws IOException {
+
+//        neighborData.entrySet().stream().filter(entry -> entry.getValue().getChoke()).collect(Collectors.toList());
         this.peerID = peerID;
         this.logger = new Logging();
 
@@ -109,6 +112,7 @@ public class Peer {
         }
     }
 
+    // TODO: move this to sendHandshake
     // Creates the socket connection with a specific neighbor and stores it
     private void setupConnection(int neighborPeerID, final PeerMetadata metadata) {
         try {

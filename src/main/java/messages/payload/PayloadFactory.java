@@ -17,11 +17,11 @@ public class PayloadFactory
         return new BitfieldPayload(numberOfPieces, message.getPayloadBytes());
     }
 
-    public PieceIndexPayload createHavePayload(final int pieceID) {
+    public PieceIndexPayload createPieceIndexPayload(final int pieceID) {
         return new PieceIndexPayload(pieceID);
     }
 
-    public PieceIndexPayload createHavePayload(final Message message) {
+    public PieceIndexPayload createPieceIndexPayload(final Message message) {
         return new PieceIndexPayload(message.getPayloadBytes());
     }
 
@@ -32,4 +32,5 @@ public class PayloadFactory
     public PiecePayload createPiecePayload(final int pieceID, final byte[] pieceBytes) {
         return new PiecePayload(pieceID, pieceBytes);
     }
+
 }

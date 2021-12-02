@@ -9,14 +9,13 @@ import messages.payload.PayloadFactory;
 import messages.payload.impl.PiecePayload;
 import pieces.PieceManager;
 import util.AtomicReferenceArrayHelper;
+import util.RandomMissingPieceGenerator;
 import neighbor.Neighbor;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.nio.file.Paths;
 import java.util.Map;
 
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -60,6 +59,7 @@ public class PeerConnection extends Thread {
         this.pieceManager = pieceManager;
     }
 
+    // Constructor for host listening from a connection
     public PeerConnection(
             final int peerID,
             final Socket neighborSocket,
@@ -77,6 +77,7 @@ public class PeerConnection extends Thread {
         }
     }
 
+    // Constructor for host initializing connection
     public PeerConnection(
             final int peerID,
             final Socket neighborSocket,
@@ -101,11 +102,12 @@ public class PeerConnection extends Thread {
                         final HandshakeMessage handshakeMessage =
                                 (HandshakeMessage) inputStream.readObject();
 
-                        // check handshake is fine
-                        // TODO: insert into neighbor map
                         neighborID = handshakeMessage.getPeerID();
                         System.out.println("Received handshake message: " + handshakeMessage);
-                        neighborData.put(neighborID, new Neighbor(connection, neighborID));
+
+                        final Neighbor neighbor = new Neighbor(connection, neighborID);
+                        neighborData.put(neighborID, neighbor);
+                        neighbor.setOutputStream(outputStream);
 
                         if (!hasSentHandshakeMessage) {
                             final HandshakeMessage responseHandshakeMessage =
@@ -155,6 +157,22 @@ public class PeerConnection extends Thread {
                 break;
             case UNCHOKE:
                 neighborData.get(neighborID).setChoke(false);
+
+                //TODO Request
+
+//                RandomMissingPieceGenerator randomGenerator =
+//                        new RandomMissingPieceGenerator(pieces, neighborData.get(neighborID).getBitfield());
+//
+//                int pieceIndex = randomGenerator.getRandomPiece();
+//
+//                if(pieceIndex == -1){
+//
+//                    // Maybe not what we need need it to do?
+//
+//                    sendIntentMessage(false);
+//                } else {
+//                    sendRequestMessage(pieceIndex);
+//                }
                 break;
             case INTERESTED:
                 System.out.println("Received Interested.");
@@ -165,7 +183,7 @@ public class PeerConnection extends Thread {
                 neighborData.get(neighborID).setInterested(false);
                 break;
             case HAVE:
-                final int obtainedPieceID = payloadFactory.createHavePayload(message).getPieceID();
+                final int obtainedPieceID = payloadFactory.createPieceIndexPayload(message).getPieceID();
                 final AtomicReferenceArray bitfield = neighborData.get(neighborID).getBitfield();
                 bitfield.set(obtainedPieceID, true);
 
@@ -187,8 +205,7 @@ public class PeerConnection extends Thread {
                 }
                 break;
             case REQUEST:
-                final int requestedPieceID = payloadFactory.createHavePayload(message).getPieceID();
-
+                final int requestedPieceID = payloadFactory.createPieceIndexPayload(message).getPieceID();
                 // TODO
 //                Even though peer A sends a ‘request’ message to peer B, it may not receive a ‘piece’
 //                message corresponding to it. This situation happens when peer B re-determines
@@ -202,6 +219,9 @@ public class PeerConnection extends Thread {
                 final PiecePayload piecePayload = payloadFactory.createPiecePayload(message);
                 pieceManager.savePiece(piecePayload.getPieceID(), piecePayload.getPayload());
                 pieces.set(piecePayload.getPieceID(), true);
+                neighborData.get(neighborID).addNumberOfDownloadedBytes(piecePayload.getPayload().length);
+                // broadcastReceivedPiece(piecePayload.getPieceID());
+                // TODO: send another request
                 if (hasAllPieces()) {
                     pieceManager.consolidatePiecesIntoFile();
                 }
@@ -216,6 +236,10 @@ public class PeerConnection extends Thread {
             }
         }
         return true;
+    }
+
+    private void broadcastReceivedPiece(final int pieceID) {
+
     }
 
     private void sendPiece(final int pieceID) {
@@ -240,6 +264,17 @@ public class PeerConnection extends Thread {
                                 : MessageType.NOT_INTERESTED.getValue());
         try {
             outputStream.writeObject(notInterested);
+            outputStream.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sendRequestMessage(final int pieceIndex) {
+        final Message request =
+                messageFactory.createMessage(payloadFactory.createPieceIndexPayload(pieceIndex), MessageType.REQUEST);
+        try {
+            outputStream.writeObject(request);
             outputStream.flush();
         } catch (IOException e) {
             e.printStackTrace();
