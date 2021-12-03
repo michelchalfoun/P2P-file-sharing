@@ -31,7 +31,6 @@ public class BitfieldPayload implements Payload {
 
     // Bytes to bits
     public BitfieldPayload(final int numberOfPieces, byte[] payloadInBytes) {
-        System.out.println("PAYLOAD BYTES SIZE: " + payloadInBytes.length);
         pieces = new AtomicReferenceArray<>(numberOfPieces);
         for (int i = 0; i < payloadInBytes.length; i++) {
             String binary =

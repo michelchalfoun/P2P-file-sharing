@@ -12,6 +12,9 @@ public enum MessageType
     REQUEST(6),
     PIECE(7);
 
+    // 1 online
+    // 2 -> 1
+    // 2 unchokes 1
     private static MessageType[] typesById = values();
 
     private final int value;

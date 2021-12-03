@@ -6,30 +6,32 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class RandomMissingPieceGenerator {
 
-    AtomicReferenceArray<Boolean> curBitfield;
-    AtomicReferenceArray<Boolean> neighborBitfield;
+    final AtomicReferenceArray<Boolean> peerBitfield;
+    final AtomicReferenceArray<Boolean> neighborBitfield;
+    final ThreadLocalRandom threadLocalRandom;
 
-    RandomMissingPieceGenerator(AtomicReferenceArray<Boolean> curBitfield,
-                                AtomicReferenceArray<Boolean> neighborBitfield){
-        this.curBitfield = curBitfield;
+    public RandomMissingPieceGenerator(
+            final AtomicReferenceArray<Boolean> peerBitfield,
+            final AtomicReferenceArray<Boolean> neighborBitfield) {
+        this.peerBitfield = peerBitfield;
         this.neighborBitfield = neighborBitfield;
+        threadLocalRandom = ThreadLocalRandom.current();
     }
 
-    public int getRandomPiece(){
-        ArrayList<Integer> missingPieces = new ArrayList<>();
+    public int getRandomPiece() {
+        final ArrayList<Integer> missingPieces = new ArrayList<>();
 
-        for (int i = 0; i < neighborBitfield.length(); i++){
-            if (neighborBitfield.get(i) && !curBitfield.get(i)){
-                missingPieces.add(i);
+        for (int index = 0; index < neighborBitfield.length(); index++) {
+            if (neighborBitfield.get(index) && !peerBitfield.get(index)) {
+                missingPieces.add(index);
             }
         }
 
         if (missingPieces.size() == 0) {
             return -1;
         } else {
-            int randomNum = ThreadLocalRandom.current().nextInt(0, missingPieces.size());
+            int randomNum = threadLocalRandom.nextInt(0, missingPieces.size());
             return missingPieces.get(randomNum);
         }
-
     }
 }

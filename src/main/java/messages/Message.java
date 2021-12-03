@@ -62,7 +62,7 @@ public class Message
     public String toString() {
         return "Message{" +
                 "messageLength=" + messageLength +
-                ", messageType=" + messageType +
+                ", messageType=" + MessageType.values()[messageType].name() +
                 ", messagePayload=" + Arrays.toString(payloadBytes) +
                 '}';
     }

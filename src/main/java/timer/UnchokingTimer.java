@@ -1,10 +1,15 @@
 package timer;
 
+import messages.Message;
+import messages.MessageFactory;
+import messages.MessageType;
+import messages.payload.PayloadFactory;
 import neighbor.Neighbor;
+import neighbor.DownloadRateContainer;
 
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class UnchokingTimer extends Thread {
@@ -12,11 +17,18 @@ public class UnchokingTimer extends Thread {
     private Timer timer;
     private final Map<Integer, Neighbor> neighborData;
     private final int interval;
+    private final int numberOfPreferredNeighbors;
 
-    public UnchokingTimer(final int intervalInSeconds, final Map<Integer, Neighbor> neighborData) {
+    private final MessageFactory messageFactory;
+    private final PayloadFactory payloadFactory;
+
+    public UnchokingTimer(final int intervalInSeconds, final int numberOfPreferredNeighbors, final Map<Integer, Neighbor> neighborData) {
         this.interval = intervalInSeconds;
         this.neighborData = neighborData;
+        this.numberOfPreferredNeighbors = numberOfPreferredNeighbors;
         timer = new Timer();
+        messageFactory = new MessageFactory();
+        payloadFactory = new PayloadFactory();
     }
 
     public void run() {
@@ -28,26 +40,65 @@ public class UnchokingTimer extends Thread {
 
     class UnchokeTask extends TimerTask {
         public void run() {
-            // A -> B,C,D
-            //      5,15,0
-            //      0.5, 1.5, 0
-            // interval = 10sec
-
-            // B, C
-            // B -> unchoke message
-            // C -> unchoke message
-
-            final Map<Neighbor, Float> downloadRatesByNeighbor =
+            final List<DownloadRateContainer> downloadRateContainers =
                     neighborData.entrySet().stream()
                             .collect(Collectors.toMap(
                                             Map.Entry::getValue,
                                             entry ->
-                                                    (float) entry.getValue().getNumberOfDownloadedBytes() / (float) interval));
+                                                    (float) entry.getValue().getNumberOfDownloadedBytes() / (float) interval))
+                            .entrySet().stream()
+                            .map(entry -> new DownloadRateContainer(entry.getKey(), entry.getValue()))
+                            .collect(Collectors.toList());
+            Collections.sort(downloadRateContainers);
 
+            final List<DownloadRateContainer> unchokedDownloadRateContainers =
+                    downloadRateContainers.stream()
+                            .filter(downloadRateContainer -> downloadRateContainer.getNeighbor().isInterested())
+                            .limit(numberOfPreferredNeighbors)
+                            .collect(Collectors.toList());
 
+            consolidateUnchokedNeighbors(unchokedDownloadRateContainers);
+        }
 
-            System.out.println("Unchoking Ran");
-            System.out.println(neighborData);
+        /**
+         *
+         * Peer 1001
+         * neighbors = [(1002, false)]
+         *
+         * Peer 1002
+         * neighbors = [(1001, false)]
+         *
+         */
+
+        private void consolidateUnchokedNeighbors(
+                final List<DownloadRateContainer> unchokedDownloadRateContainers) {
+            final Set<Integer> unchokedPeerIDs =
+                    unchokedDownloadRateContainers.stream()
+                            .map(downloadRateContainer -> downloadRateContainer.getNeighbor().getPeerID())
+                            .collect(Collectors.toSet());
+            System.out.println("Unchoking peer ID" + unchokedPeerIDs);
+            neighborData.values().forEach(neighbor -> {
+                if (neighbor.isChoked() && !unchokedPeerIDs.contains(neighbor.getPeerID())) {
+                    // Neighbor has been choked (previously unchoked)
+                    sendChokeMessage(true, neighbor);
+                    neighbor.setChoked(true);
+                } else if (!neighbor.isChoked() && unchokedPeerIDs.contains(neighbor.getPeerID())) {
+                    // Neighbor has been unchoked (previously choked)
+                    sendChokeMessage(false, neighbor);
+                    neighbor.setChoked(false);
+                }
+            });
+        }
+
+        private void sendChokeMessage(final boolean isChoked, final Neighbor neighbor) {
+            final Message request =
+                    messageFactory.createMessage(isChoked ? MessageType.CHOKE : MessageType.UNCHOKE);
+            try {
+                neighbor.getOutputStream().writeObject(request);
+                neighbor.getOutputStream().flush();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

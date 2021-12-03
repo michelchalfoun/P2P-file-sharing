@@ -45,6 +45,10 @@ public class CommonConfig {
         return valueByKey;
     }
 
+    public int getNumberOfPreferredNeighbors() {
+        return numberOfPreferredNeighbors;
+    }
+
     public int getFileSize() {
         return fileSize;
     }

@@ -48,7 +48,7 @@ public class Logging {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info("Peer " + peerID_1 + " makes a connection to Peer " + peerID_2 + ".");
+        logInfo("Peer " + peerID_1 + " makes a connection to Peer " + peerID_2 + ".");
     }
 
     public void TCP_receive(final int peerID_1, final int peerID_2) {
@@ -57,7 +57,7 @@ public class Logging {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info("Peer " + peerID_1 + " is connected from Peer " + peerID_2 + ".");
+        logInfo("Peer " + peerID_1 + " is connected from Peer " + peerID_2 + ".");
     }
 
     public void changePreferredNeighbors(final int peerID_1, final int[] neighborID_list) {
@@ -71,7 +71,7 @@ public class Logging {
             msg += id + ", ";
         }
         // Remove last trailing comma and space
-        this.logger.info(msg.substring(0, msg.length() - 2) + ".");
+        logInfo(msg.substring(0, msg.length() - 2) + ".");
     }
 
     public void changeOptimUnchokedNeighbor(final int peerID_1, final int neighborID) {
@@ -80,7 +80,7 @@ public class Logging {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info(
+        logInfo(
                 "Peer "
                         + peerID_1
                         + " has the optimistically unchoked neighbor "
@@ -94,7 +94,7 @@ public class Logging {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info("Peer " + peerID_1 + " is unchoked by " + peerID_2 + ".");
+        logInfo("Peer " + peerID_1 + " is unchoked by " + peerID_2 + ".");
     }
 
     public void choking(final int peerID_1, final int peerID_2) {
@@ -103,7 +103,7 @@ public class Logging {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info("Peer " + peerID_1 + " is choked by " + peerID_2 + ".");
+        logInfo("Peer " + peerID_1 + " is choked by " + peerID_2 + ".");
     }
 
     public void receiveHaveMsg(final int peerID_1, final int peerID_2, final int pieceIndex) {
@@ -112,7 +112,7 @@ public class Logging {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info(
+        logInfo(
                 "Peer "
                         + peerID_1
                         + " received the 'have' message from "
@@ -128,7 +128,7 @@ public class Logging {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info(
+        logInfo(
                 "Peer " + peerID_1 + " received the 'interested' message from " + peerID_2 + ".");
     }
 
@@ -138,7 +138,7 @@ public class Logging {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info(
+        logInfo(
                 "Peer "
                         + peerID_1
                         + " received the 'not interested' message from "
@@ -153,7 +153,7 @@ public class Logging {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info(
+        logInfo(
                 "Peer "
                         + peerID_1
                         + " has downloadded the piece "
@@ -171,6 +171,11 @@ public class Logging {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.logger.info("Peer " + peerID_1 + " has downloaded the complete file");
+        logInfo("Peer " + peerID_1 + " has downloaded the complete file");
+    }
+
+    private void logInfo(final String message) {
+        System.out.println(message);
+        logger.info(message);
     }
 }

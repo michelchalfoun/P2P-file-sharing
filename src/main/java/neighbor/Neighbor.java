@@ -11,7 +11,9 @@ public class Neighbor {
 
     private final int peerID;
     private AtomicReferenceArray bitfield;
-    private boolean choke;
+
+    // represents if the peer -> neighbor connection is choked (we aren't sending the neighbor pieces)
+    private boolean isChoked;
 
     private boolean interested;
     private int numberOfDownloadedBytes;
@@ -19,6 +21,8 @@ public class Neighbor {
     public Neighbor(final Socket socket, final int peerID) {
         this.socket = socket;
         this.peerID = peerID;
+        this.isChoked = false;
+        this.interested = false;
     }
 
     public synchronized int getPeerID() {
@@ -34,8 +38,8 @@ public class Neighbor {
         return socket;
     }
 
-    public synchronized boolean getChoke() {
-        return choke;
+    public synchronized boolean isChoked() {
+        return isChoked;
     }
 
     public synchronized boolean isInterested() {
@@ -58,8 +62,8 @@ public class Neighbor {
         this.interested = interested;
     }
 
-    public synchronized void setChoke(boolean choke) {
-        this.choke = choke;
+    public synchronized void setChoked(boolean choked) {
+        this.isChoked = choked;
     }
 
     public synchronized ObjectOutputStream getOutputStream() {

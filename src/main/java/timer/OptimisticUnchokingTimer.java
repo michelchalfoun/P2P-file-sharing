@@ -21,7 +21,7 @@ public class OptimisticUnchokingTimer extends Thread {
 
     class OptimisticUnchokingTask extends TimerTask {
         public void run() {
-            System.out.println("Optimistic Unchoking Ran");
+//            System.out.println("Optimistic Unchoking Ran");
         }
     }
 }

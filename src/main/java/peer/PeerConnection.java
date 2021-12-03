@@ -9,8 +9,8 @@ import messages.payload.PayloadFactory;
 import messages.payload.impl.PiecePayload;
 import pieces.PieceManager;
 import util.AtomicReferenceArrayHelper;
-import util.RandomMissingPieceGenerator;
 import neighbor.Neighbor;
+import util.RandomMissingPieceGenerator;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -32,6 +32,8 @@ public class PeerConnection extends Thread {
     private final boolean hasSentHandshakeMessage;
     private boolean hasSentBitfieldMessage;
     private boolean isHandshakeDone;
+    // represents if the neighbor -> peer connection is choked (neighbor is not sending us pieces)
+    private boolean neighborConnectionChoked;
 
     private final AtomicReferenceArray<Boolean> pieces;
     private final Map<Integer, Neighbor> neighborData;
@@ -153,26 +155,23 @@ public class PeerConnection extends Thread {
 
         switch (message.getMessageType()) {
             case CHOKE:
-                neighborData.get(neighborID).setChoke(true);
+                neighborConnectionChoked = true;
                 break;
             case UNCHOKE:
-                neighborData.get(neighborID).setChoke(false);
+                neighborConnectionChoked = false;
 
                 //TODO Request
 
-//                RandomMissingPieceGenerator randomGenerator =
-//                        new RandomMissingPieceGenerator(pieces, neighborData.get(neighborID).getBitfield());
-//
-//                int pieceIndex = randomGenerator.getRandomPiece();
-//
-//                if(pieceIndex == -1){
-//
-//                    // Maybe not what we need need it to do?
-//
-//                    sendIntentMessage(false);
-//                } else {
-//                    sendRequestMessage(pieceIndex);
-//                }
+                RandomMissingPieceGenerator randomGenerator =
+                        new RandomMissingPieceGenerator(pieces, neighborData.get(neighborID).getBitfield());
+                int pieceIndex = randomGenerator.getRandomPiece();
+
+                if(pieceIndex == -1){
+                    // TODO: Maybe not what we need need it to do?
+                    sendIntentMessage(false);
+                } else {
+                    sendRequestMessage(pieceIndex);
+                }
                 break;
             case INTERESTED:
                 System.out.println("Received Interested.");
@@ -196,9 +195,10 @@ public class PeerConnection extends Thread {
             case BITFIELD:
                 final BitfieldPayload payload = payloadFactory.createBitfieldPayload(message, pieces.length());
                 System.out.println("Received bitfield from " + neighborID + " " + payload);
+                System.out.println("My bitfield is " + pieces);
 
                 neighborData.get(neighborID).setBitfield(payload.getPieces());
-                sendIntentMessage(!AtomicReferenceArrayHelper.isInterested(pieces, payload.getPieces()));
+                sendIntentMessage(AtomicReferenceArrayHelper.isInterested(pieces, payload.getPieces()));
 
                 if (!hasSentBitfieldMessage) {
                     sendBitfieldPayload();
@@ -206,12 +206,13 @@ public class PeerConnection extends Thread {
                 break;
             case REQUEST:
                 final int requestedPieceID = payloadFactory.createPieceIndexPayload(message).getPieceID();
+                System.out.println("Received request message for " + requestedPieceID);
                 // TODO
 //                Even though peer A sends a ‘request’ message to peer B, it may not receive a ‘piece’
 //                message corresponding to it. This situation happens when peer B re-determines
 //                preferred neighbors or optimistically unchoked a neighbor and peer A is choked as the
 //                result before peer B responds to peer A. Your program should consider this case.
-                if (!neighborData.get(neighborID).getChoke()) {
+                if (!neighborData.get(neighborID).isChoked()) {
                     sendPiece(requestedPieceID);
                 }
                 break;
@@ -257,6 +258,7 @@ public class PeerConnection extends Thread {
 
     // Send message with interested/uninterested intent
     private void sendIntentMessage(final boolean interested) {
+        System.out.println("Sent interest of " +interested + " to peer " + neighborID);
         final Message notInterested =
                 new Message(
                         interested
@@ -285,6 +287,7 @@ public class PeerConnection extends Thread {
     // Send bitfield payload
     private void sendBitfieldPayload() {
         final BitfieldPayload bitfieldPayload = payloadFactory.createBitfieldPayload(pieces);
+        System.out.println("Sending bitfield payload to peer " + neighborID);
         final Message bitfieldMessage =
                 messageFactory.createMessage(bitfieldPayload, MessageType.BITFIELD);
 
