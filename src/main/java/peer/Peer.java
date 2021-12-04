@@ -37,7 +37,7 @@ public class Peer {
 
     private ServerSocket listenerSocket;
 
-//    private ArrayList<Integer> preferredNeighbors;
+    private Set<Integer> requestedPieces;
 
     public Peer(final int peerID) throws IOException {
 
@@ -54,6 +54,9 @@ public class Peer {
         neighborData = new ConcurrentHashMap<>();
 
         initializePieceIndexes();
+
+        ConcurrentHashMap<Integer, Integer> map = new ConcurrentHashMap<>();
+        requestedPieces = map.newKeySet();
 
         // Setup Listener port
         try {
@@ -105,7 +108,8 @@ public class Peer {
                             neighborData,
                             outputStream,
                             inputStream,
-                    pieceManager)
+                            pieceManager,
+                            requestedPieces)
                     .start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -135,7 +139,7 @@ public class Peer {
             while (true) {
                 Socket socket = listenerSocket.accept();
                 final PieceManager pieceManager = new PieceManager(peerID, commonConfig.getFileName(), commonConfig.getFileSize(), commonConfig.getPieceSize(), metadata.isHasFile());
-                new PeerConnection(peerID, socket, pieceIndexes, neighborData, pieceManager).start();
+                new PeerConnection(peerID, socket, pieceIndexes, neighborData, pieceManager, requestedPieces).start();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -167,8 +171,8 @@ public class Peer {
 
     public static void main(String args[]) throws IOException {
 //         Setup Peer
-        final int peerID = Integer.parseInt(args[0]);
-//                final int peerID = 1001;
+//        final int peerID = Integer.parseInt(args[0]);
+                final int peerID = 1002;
         final Peer client = new Peer(peerID);
         System.out.println("Process " + "\u001B[31m" + peerID + "\u001B[0m" + " running.");
         client.run();

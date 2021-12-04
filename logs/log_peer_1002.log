@@ -22,3 +22,7 @@ Dec 03, 2021 3:48:02 PM logging.Logging logInfo
 INFO: Peer 1002 makes a connection to Peer 1001.
 Dec 03, 2021 3:48:20 PM logging.Logging logInfo
 INFO: Peer 1002 makes a connection to Peer 1001.
+Dec 04, 2021 3:14:00 PM logging.Logging logInfo
+INFO: Peer 1002 makes a connection to Peer 1001.
+Dec 04, 2021 3:14:28 PM logging.Logging logInfo
+INFO: Peer 1002 makes a connection to Peer 1001.

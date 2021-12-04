@@ -21,10 +21,26 @@ public class RandomMissingPieceGeneratorTest {
         piecesHeldInNeighbor.forEach(pieceID -> neighborBitfield.set(pieceID, true));
 
         final RandomMissingPieceGenerator generator =
-                new RandomMissingPieceGenerator(peerBitfield, neighborBitfield);
+                new RandomMissingPieceGenerator(peerBitfield, neighborBitfield, new HashSet<>());
 
         for (int iteration = 0; iteration < 100; iteration++) {
             assertTrue(piecesHeldInNeighbor.contains(generator.getRandomPiece()));
+        }
+    }
+
+    @Test
+    public void testRandomMissingPieceGeneratorWithRequestedMessages() {
+        final AtomicReferenceArray<Boolean> peerBitfield = generateEmptyBitfield(10);
+        final AtomicReferenceArray<Boolean> neighborBitfield = generateEmptyBitfield(10);
+
+        final Set<Integer> piecesHeldInNeighbor = new HashSet<>(Arrays.asList(4, 6, 8));
+        piecesHeldInNeighbor.forEach(pieceID -> neighborBitfield.set(pieceID, true));
+
+        final RandomMissingPieceGenerator generator =
+                new RandomMissingPieceGenerator(peerBitfield, neighborBitfield, new HashSet<>(Arrays.asList(4, 6)));
+
+        for (int iteration = 0; iteration < 100; iteration++) {
+            assertEquals(8, generator.getRandomPiece());
         }
     }
 
@@ -37,7 +53,7 @@ public class RandomMissingPieceGeneratorTest {
         piecesHeldInNeighbor.forEach(pieceID -> neighborBitfield.set(pieceID, true));
 
         final RandomMissingPieceGenerator generator =
-                new RandomMissingPieceGenerator(peerBitfield, neighborBitfield);
+                new RandomMissingPieceGenerator(peerBitfield, neighborBitfield, new HashSet<>());
 
         for (int iteration = 0; iteration < 100; iteration++) {
             assertEquals(-1, generator.getRandomPiece());

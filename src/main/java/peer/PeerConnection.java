@@ -18,6 +18,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Map;
 
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /** Listener thread that has the logic to communicate with other peers */
@@ -42,13 +43,16 @@ public class PeerConnection extends Thread {
     private final PayloadFactory payloadFactory;
     private final PieceManager pieceManager;
 
+    private Set<Integer> peerRequestedPieces;
+
     public PeerConnection(
             final int peerID,
             final Socket neighborSocket,
             final boolean hasSentHandshakeMessage,
             final AtomicReferenceArray<Boolean> pieces,
             final Map<Integer, Neighbor> neighborData,
-            final PieceManager pieceManager) {
+            final PieceManager pieceManager,
+            final Set<Integer> peerRequestedPieces) {
         connection = neighborSocket;
         messageFactory = new MessageFactory();
         payloadFactory = new PayloadFactory();
@@ -60,6 +64,7 @@ public class PeerConnection extends Thread {
         this.neighborData = neighborData;
         this.pieces = pieces;
         this.pieceManager = pieceManager;
+        this.peerRequestedPieces = peerRequestedPieces;
     }
 
     // Constructor for host listening from a connection
@@ -68,9 +73,10 @@ public class PeerConnection extends Thread {
             final Socket neighborSocket,
             final AtomicReferenceArray<Boolean> pieces,
             final Map<Integer, Neighbor> neighborData,
-            final PieceManager pieceManager) {
+            final PieceManager pieceManager,
+            final Set<Integer> peerRequestedPieces) {
 
-        this(peerID, neighborSocket, false, pieces, neighborData, pieceManager);
+        this(peerID, neighborSocket, false, pieces, neighborData, pieceManager, peerRequestedPieces);
         try {
             outputStream = new ObjectOutputStream(connection.getOutputStream());
             outputStream.flush();
@@ -89,8 +95,9 @@ public class PeerConnection extends Thread {
             final Map<Integer, Neighbor> neighborData,
             final ObjectOutputStream outputStream,
             final ObjectInputStream inputStream,
-            final PieceManager pieceManager) {
-        this(peerID, neighborSocket, hasSentHandshakeMessage, pieces, neighborData, pieceManager);
+            final PieceManager pieceManager,
+            final Set<Integer> peerRequestedPieces) {
+        this(peerID, neighborSocket, hasSentHandshakeMessage, pieces, neighborData, pieceManager, peerRequestedPieces);
         this.inputStream = inputStream;
         this.outputStream = outputStream;
     }
@@ -151,6 +158,7 @@ public class PeerConnection extends Thread {
     }
 
     private void processMessage() throws IOException, ClassNotFoundException {
+        System.out.println("SENT FROM " + neighborID);
         final Message message = (Message) inputStream.readObject();
 
         switch (message.getMessageType()) {
@@ -232,7 +240,7 @@ public class PeerConnection extends Thread {
 
     private void requestRandomPiece() {
         final RandomMissingPieceGenerator randomGenerator =
-                new RandomMissingPieceGenerator(pieces, neighborData.get(neighborID).getBitfield());
+                new RandomMissingPieceGenerator(pieces, neighborData.get(neighborID).getBitfield(), peerRequestedPieces);
         int pieceIndex = randomGenerator.getRandomPiece();
 
         if(pieceIndex == -1){
@@ -253,9 +261,12 @@ public class PeerConnection extends Thread {
     }
 
     private void broadcastReceivedPiece(final int pieceID) {
-        neighborData.values().forEach(neighbor -> {
-            sendHaveMessage(pieceID);
-        });
+
+        neighborData.values().forEach(w -> System.out.println("neighbor: " + w.getPeerID() + "OS: " + w.getOutputStream()));
+
+        neighborData.values().forEach(neighbor -> sendHaveMessage(pieceID, neighbor));
+
+
         /*
 
         peer 1001
@@ -283,14 +294,15 @@ public class PeerConnection extends Thread {
         }
     }
 
-    private void sendHaveMessage(final int pieceID) {
-        System.out.println("Sending have message for pieceID " + pieceID + " for neighbor " + neighborID);
+    private void sendHaveMessage(final int pieceID, final Neighbor targetNeighbor) {
+        System.out.println("Sending have message for pieceID " + pieceID + " for neighbor " + targetNeighbor.getPeerID());
         final Message haveMessage =
-                messageFactory.createMessage(
-                        payloadFactory.createPieceIndexPayload(pieceID), MessageType.HAVE);
+                messageFactory.createMessage(payloadFactory.createPieceIndexPayload(pieceID), MessageType.HAVE);
         try {
-            outputStream.writeObject(haveMessage);
-            outputStream.flush();
+            System.out.println("have msg: " + haveMessage);
+            System.out.println("output stream: " + targetNeighbor.getOutputStream());
+            targetNeighbor.getOutputStream().writeObject(haveMessage);
+            targetNeighbor.getOutputStream().flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -318,6 +330,7 @@ public class PeerConnection extends Thread {
         try {
             outputStream.writeObject(request);
             outputStream.flush();
+            peerRequestedPieces.add(pieceIndex);
         } catch (IOException e) {
             e.printStackTrace();
         }

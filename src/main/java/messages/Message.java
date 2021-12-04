@@ -33,6 +33,7 @@ public class Message
         messageLength = aInputStream.readInt();
         messageType = aInputStream.readByte();
 
+        System.out.println("message length: " + messageLength + " and type " + messageType);
         payloadBytes = new byte[messageLength - 1];
 
         for (int i = 0; i < messageLength - 1; i++) {
