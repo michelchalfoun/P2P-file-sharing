@@ -101,6 +101,10 @@ public class PieceManager {
     private void createFileWithBytes(final String fileName, final byte[] bytes) {
         try {
             final File file = new File(fileName);
+            final File parent = file.getParentFile();
+            if (parent != null && !parent.exists() && !parent.mkdirs()) {
+                throw new IllegalStateException("Couldn't create dir: " + parent);
+            }
             file.createNewFile();
             Files.write(file.toPath(), bytes);
         } catch (IOException e) {

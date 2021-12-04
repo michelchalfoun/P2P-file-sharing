@@ -166,7 +166,7 @@ public class Peer {
     }
 
     public static void main(String args[]) throws IOException {
-        // Setup Peer
+//         Setup Peer
         final int peerID = Integer.parseInt(args[0]);
 //                final int peerID = 1001;
         final Peer client = new Peer(peerID);

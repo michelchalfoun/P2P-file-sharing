@@ -18,6 +18,7 @@ public class RandomMissingPieceGenerator {
         threadLocalRandom = ThreadLocalRandom.current();
     }
 
+    // TODO: synchronize
     public int getRandomPiece() {
         final ArrayList<Integer> missingPieces = new ArrayList<>();
 

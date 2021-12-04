@@ -28,13 +28,13 @@ public class PiecePayload implements Payload {
     public PiecePayload(final byte[] messagePayload) {
         byte[] pieceIDBytes = new byte[4];
         payload = new byte[messagePayload.length - 4];
-
         for (int index = 0; index < 4; index++) {
             pieceIDBytes[index] = messagePayload[index];
         }
         for (int index = 4; index < messagePayload.length; index++) {
             payload[index - 4] = messagePayload[index];
         }
+        pieceID = new IntBytes(pieceIDBytes).getIntValue();
     }
 
     @Override

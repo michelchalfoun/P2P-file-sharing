@@ -21,7 +21,7 @@ public class Neighbor {
     public Neighbor(final Socket socket, final int peerID) {
         this.socket = socket;
         this.peerID = peerID;
-        this.isChoked = false;
+        this.isChoked = true;
         this.interested = false;
     }
 

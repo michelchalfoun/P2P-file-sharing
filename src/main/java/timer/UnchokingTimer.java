@@ -8,7 +8,6 @@ import neighbor.Neighbor;
 import neighbor.DownloadRateContainer;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -70,6 +69,10 @@ public class UnchokingTimer extends Thread {
          *
          */
 
+        /**
+         *
+         */
+
         private void consolidateUnchokedNeighbors(
                 final List<DownloadRateContainer> unchokedDownloadRateContainers) {
             final Set<Integer> unchokedPeerIDs =
@@ -78,11 +81,11 @@ public class UnchokingTimer extends Thread {
                             .collect(Collectors.toSet());
             System.out.println("Unchoking peer ID" + unchokedPeerIDs);
             neighborData.values().forEach(neighbor -> {
-                if (neighbor.isChoked() && !unchokedPeerIDs.contains(neighbor.getPeerID())) {
+                if (!neighbor.isChoked() && !unchokedPeerIDs.contains(neighbor.getPeerID())) {
                     // Neighbor has been choked (previously unchoked)
                     sendChokeMessage(true, neighbor);
                     neighbor.setChoked(true);
-                } else if (!neighbor.isChoked() && unchokedPeerIDs.contains(neighbor.getPeerID())) {
+                } else if (neighbor.isChoked() && unchokedPeerIDs.contains(neighbor.getPeerID())) {
                     // Neighbor has been unchoked (previously choked)
                     sendChokeMessage(false, neighbor);
                     neighbor.setChoked(false);
