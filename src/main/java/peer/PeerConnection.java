@@ -158,8 +158,9 @@ public class PeerConnection extends Thread {
     }
 
     private void processMessage() throws IOException, ClassNotFoundException {
-        System.out.println("SENT FROM " + neighborID);
+        System.out.println("SENT FROM " + neighborID + " at " + System.currentTimeMillis());
         final Message message = (Message) inputStream.readObject();
+        System.out.println("Succesfully read message");
 
         switch (message.getMessageType()) {
             case CHOKE:
@@ -172,11 +173,11 @@ public class PeerConnection extends Thread {
                 requestRandomPiece();
                 break;
             case INTERESTED:
-                System.out.println("Received Interested.");
+                System.out.println("Received Interested from " + neighborID + " at " + System.currentTimeMillis() );
                 neighborData.get(neighborID).setInterested(true);
                 break;
             case NOT_INTERESTED:
-                System.out.println("Received Not Interested.");
+                System.out.println("Received Not Interested from " + neighborID+ " at " + System.currentTimeMillis());
                 neighborData.get(neighborID).setInterested(false);
                 break;
             case HAVE:
@@ -262,7 +263,7 @@ public class PeerConnection extends Thread {
 
     private void broadcastReceivedPiece(final int pieceID) {
 
-        neighborData.values().forEach(w -> System.out.println("neighbor: " + w.getPeerID() + "OS: " + w.getOutputStream()));
+//        neighborData.values().forEach(w -> System.out.println("neighbor: " + w.getPeerID() + "OS: " + w.getOutputStream()));
 
         neighborData.values().forEach(neighbor -> sendHaveMessage(pieceID, neighbor));
 
@@ -283,57 +284,37 @@ public class PeerConnection extends Thread {
 
     private void sendPiece(final int pieceID) {
         final byte[] pieceBytes = pieceManager.getPiece(pieceID);
+        System.out.println("Sending piece to neighbor " + neighborID + " at " + System.currentTimeMillis());
         final Message pieceMessage =
                 messageFactory.createMessage(
                         payloadFactory.createPiecePayload(pieceID, pieceBytes), MessageType.PIECE);
-        try {
-            outputStream.writeObject(pieceMessage);
-            outputStream.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        neighborData.get(neighborID).sendMessageInOutputStream(pieceMessage);
     }
 
     private void sendHaveMessage(final int pieceID, final Neighbor targetNeighbor) {
-        System.out.println("Sending have message for pieceID " + pieceID + " for neighbor " + targetNeighbor.getPeerID());
+        System.out.println("Sending have message for pieceID " + pieceID + " for neighbor " + targetNeighbor.getPeerID()+ " at " + System.currentTimeMillis());
         final Message haveMessage =
                 messageFactory.createMessage(payloadFactory.createPieceIndexPayload(pieceID), MessageType.HAVE);
-        try {
-            System.out.println("have msg: " + haveMessage);
-            System.out.println("output stream: " + targetNeighbor.getOutputStream());
-            targetNeighbor.getOutputStream().writeObject(haveMessage);
-            targetNeighbor.getOutputStream().flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        targetNeighbor.sendMessageInOutputStream(haveMessage);
     }
 
     // Send message with interested/uninterested intent
     private void sendIntentMessage(final boolean interested) {
-        System.out.println("Sent interest of " +interested + " to peer " + neighborID);
+        System.out.println("Sent interest of " +interested + " to peer " + neighborID + " at " + System.currentTimeMillis());
         final Message notInterested =
                 new Message(
                         interested
                                 ? MessageType.INTERESTED.getValue()
                                 : MessageType.NOT_INTERESTED.getValue());
-        try {
-            outputStream.writeObject(notInterested);
-            outputStream.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        neighborData.get(neighborID).sendMessageInOutputStream(notInterested);
     }
 
     private void sendRequestMessage(final int pieceIndex) {
+        System.out.println("Sending request to " + neighborID + " at " + System.currentTimeMillis());
         final Message request =
                 messageFactory.createMessage(payloadFactory.createPieceIndexPayload(pieceIndex), MessageType.REQUEST);
-        try {
-            outputStream.writeObject(request);
-            outputStream.flush();
-            peerRequestedPieces.add(pieceIndex);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        neighborData.get(neighborID).sendMessageInOutputStream(request);
+        peerRequestedPieces.add(pieceIndex);
     }
 
 
@@ -344,13 +325,8 @@ public class PeerConnection extends Thread {
         final Message bitfieldMessage =
                 messageFactory.createMessage(bitfieldPayload, MessageType.BITFIELD);
 
-        try {
-            outputStream.writeObject(bitfieldMessage);
-            outputStream.flush();
-            hasSentBitfieldMessage = true;
-            System.out.println("Sent bitfield message: " + bitfieldMessage);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        neighborData.get(neighborID).sendMessageInOutputStream(bitfieldMessage);
+        hasSentBitfieldMessage = true;
+        System.out.println("Sent bitfield message: " + bitfieldMessage);
     }
 }

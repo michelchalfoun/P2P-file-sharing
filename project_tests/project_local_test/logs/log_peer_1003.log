@@ -66,3 +66,143 @@ Dec 04, 2021 3:14:30 PM logging.Logging logInfo
 INFO: Peer 1003 makes a connection to Peer 1001.
 Dec 04, 2021 3:14:30 PM logging.Logging logInfo
 INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 11:13:05 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 11:13:05 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 11:15:03 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 11:15:03 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 11:21:18 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 11:21:18 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 11:31:55 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 11:31:55 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 11:40:11 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 11:40:11 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 11:44:40 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 11:44:40 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 11:52:46 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 11:52:46 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 11:58:25 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 11:58:25 AM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 12:27:51 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 12:27:51 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 12:30:31 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 12:30:31 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 12:30:36 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbors 1002.
+Dec 05, 2021 12:37:43 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 12:37:43 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 12:41:18 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 12:41:18 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 2:41:53 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 2:41:53 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 2:41:58 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbors 1002.
+Dec 05, 2021 2:42:03 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:42:08 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:42:13 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:42:18 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:42:23 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:42:28 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:42:33 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:43:18 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 2:43:18 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 2:43:23 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbors 1002, 1004.
+Dec 05, 2021 2:43:28 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbors 1004.
+Dec 05, 2021 2:43:33 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbors 1004.
+Dec 05, 2021 2:44:27 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 2:44:27 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 2:44:32 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbors 1002.
+Dec 05, 2021 2:44:37 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:44:42 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:44:47 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:44:52 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:44:57 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:45:02 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:45:07 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:45:38 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1001.
+Dec 05, 2021 2:45:38 PM logging.Logging logInfo
+INFO: Peer 1003 makes a connection to Peer 1002.
+Dec 05, 2021 2:45:43 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbors 1002, 1004.
+Dec 05, 2021 2:45:48 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:45:53 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:45:58 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:46:03 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:46:08 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:46:13 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:46:18 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:46:23 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:46:28 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:46:33 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:46:38 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:46:43 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:46:48 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:46:53 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:46:58 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:47:03 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.
+Dec 05, 2021 2:47:08 PM logging.Logging logInfo
+INFO: Peer 1003 has the preferred neighbor.

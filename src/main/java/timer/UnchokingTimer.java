@@ -1,11 +1,13 @@
 package timer;
 
+import logging.Logging;
 import messages.Message;
 import messages.MessageFactory;
 import messages.MessageType;
 import messages.payload.PayloadFactory;
 import neighbor.Neighbor;
 import neighbor.DownloadRateContainer;
+import logging.Logging;
 
 import java.io.IOException;
 import java.util.*;
@@ -13,6 +15,7 @@ import java.util.stream.Collectors;
 
 public class UnchokingTimer extends Thread {
 
+    private final int peerID;
     private Timer timer;
     private final Map<Integer, Neighbor> neighborData;
     private final int interval;
@@ -21,13 +24,18 @@ public class UnchokingTimer extends Thread {
     private final MessageFactory messageFactory;
     private final PayloadFactory payloadFactory;
 
-    public UnchokingTimer(final int intervalInSeconds, final int numberOfPreferredNeighbors, final Map<Integer, Neighbor> neighborData) {
+    private final Logging logger;
+
+    public UnchokingTimer(final int peerID, final int intervalInSeconds, final int numberOfPreferredNeighbors, final Map<Integer, Neighbor> neighborData) {
+        this.peerID = peerID;
         this.interval = intervalInSeconds;
         this.neighborData = neighborData;
         this.numberOfPreferredNeighbors = numberOfPreferredNeighbors;
         timer = new Timer();
         messageFactory = new MessageFactory();
         payloadFactory = new PayloadFactory();
+
+        this.logger = new Logging();
     }
 
     public void run() {
@@ -80,6 +88,7 @@ public class UnchokingTimer extends Thread {
                             .map(downloadRateContainer -> downloadRateContainer.getNeighbor().getPeerID())
                             .collect(Collectors.toSet());
             System.out.println("Unchoking peer ID" + unchokedPeerIDs);
+            logger.changePreferredNeighbors(peerID, unchokedPeerIDs);
             neighborData.values().forEach(neighbor -> {
                 if (!neighbor.isChoked() && !unchokedPeerIDs.contains(neighbor.getPeerID())) {
                     // Neighbor has been choked (previously unchoked)
@@ -96,12 +105,7 @@ public class UnchokingTimer extends Thread {
         private void sendChokeMessage(final boolean isChoked, final Neighbor neighbor) {
             final Message request =
                     messageFactory.createMessage(isChoked ? MessageType.CHOKE : MessageType.UNCHOKE);
-            try {
-                neighbor.getOutputStream().writeObject(request);
-                neighbor.getOutputStream().flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            neighbor.sendMessageInOutputStream(request);
         }
     }
 }

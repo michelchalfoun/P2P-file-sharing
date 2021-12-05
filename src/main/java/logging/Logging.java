@@ -3,6 +3,7 @@ package logging;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
+import java.util.Set;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
@@ -14,7 +15,7 @@ public class Logging {
     FileHandler fileHandler;
     SimpleFormatter formatter;
 
-    public Logging() throws IOException {
+    public Logging() {
         this.logger = Logger.getLogger("MyLog");
         this.logger.setUseParentHandlers(false);
     }
@@ -60,7 +61,7 @@ public class Logging {
         logInfo("Peer " + peerID_1 + " is connected from Peer " + peerID_2 + ".");
     }
 
-    public void changePreferredNeighbors(final int peerID_1, final int[] neighborID_list) {
+    public void changePreferredNeighbors(final int peerID_1, Set<Integer> neighborID_list) {
         try {
             setFile(peerID_1);
         } catch (IOException e) {

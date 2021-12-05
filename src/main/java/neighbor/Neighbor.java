@@ -4,6 +4,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReferenceArray;
+import messages.Message;
 
 public class Neighbor {
     private final Socket socket;
@@ -66,8 +67,13 @@ public class Neighbor {
         this.isChoked = choked;
     }
 
-    public synchronized ObjectOutputStream getOutputStream() {
-        return outputStream;
+    public synchronized void sendMessageInOutputStream(final Message message) {
+        try {
+            outputStream.writeObject(message);
+            outputStream.flush();
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public synchronized void setOutputStream(final ObjectOutputStream outputStream) {

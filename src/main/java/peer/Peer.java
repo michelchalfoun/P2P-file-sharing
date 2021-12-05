@@ -157,10 +157,7 @@ public class Peer {
         peerInfoConfig.getPrevPeers(peerID).forEach(this::setupConnection);
         peerInfoConfig.getPrevPeers(peerID).forEach(this::sendHandshake);
 
-        System.out.println("Unchoking interval: " + commonConfig.getUnchokingInterval());
-        System.out.println("Optimistic unchoking interval: " + commonConfig.getOptimisticUnchokingInterval());
-
-        unchokingTimer = new UnchokingTimer(commonConfig.getUnchokingInterval(), commonConfig.getNumberOfPreferredNeighbors(), neighborData);
+        unchokingTimer = new UnchokingTimer(peerID, commonConfig.getUnchokingInterval(), commonConfig.getNumberOfPreferredNeighbors(), neighborData);
         unchokingTimer.start();
 
         optimisticUnchokingTimer = new OptimisticUnchokingTimer(commonConfig.getOptimisticUnchokingInterval());
@@ -170,9 +167,7 @@ public class Peer {
     }
 
     public static void main(String args[]) throws IOException {
-//         Setup Peer
-//        final int peerID = Integer.parseInt(args[0]);
-                final int peerID = 1002;
+        final int peerID = Integer.parseInt(args[0]);
         final Peer client = new Peer(peerID);
         System.out.println("Process " + "\u001B[31m" + peerID + "\u001B[0m" + " running.");
         client.run();
