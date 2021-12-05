@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import messages.Message;
+import messages.HandshakeMessage;
 
 public class Neighbor {
     private final Socket socket;
@@ -24,6 +25,11 @@ public class Neighbor {
         this.peerID = peerID;
         this.isChoked = true;
         this.interested = false;
+    }
+
+    public Neighbor(final Socket socket, final int peerID, final ObjectOutputStream outputStream) {
+        this(socket, peerID);
+        this.outputStream = outputStream;
     }
 
     public synchronized int getPeerID() {
@@ -68,6 +74,15 @@ public class Neighbor {
     }
 
     public synchronized void sendMessageInOutputStream(final Message message) {
+        try {
+            outputStream.writeObject(message);
+            outputStream.flush();
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public synchronized void sendMessageInOutputStream(final HandshakeMessage message) {
         try {
             outputStream.writeObject(message);
             outputStream.flush();

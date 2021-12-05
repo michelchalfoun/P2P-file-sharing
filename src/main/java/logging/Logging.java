@@ -11,9 +11,9 @@ import java.util.logging.SimpleFormatter;
 /** Logger class to log peer actions */
 public class Logging {
     // Setup to be used throughout logging functions
-    Logger logger;
-    FileHandler fileHandler;
-    SimpleFormatter formatter;
+    private final Logger logger;
+    private FileHandler fileHandler;
+    private SimpleFormatter formatter;
 
     public Logging() {
         this.logger = Logger.getLogger("MyLog");
@@ -61,7 +61,7 @@ public class Logging {
         logInfo("Peer " + peerID_1 + " is connected from Peer " + peerID_2 + ".");
     }
 
-    public void changePreferredNeighbors(final int peerID_1, Set<Integer> neighborID_list) {
+    public void changePreferredNeighbors(final int peerID_1, final Set<Integer> neighborID_list) {
         try {
             setFile(peerID_1);
         } catch (IOException e) {
@@ -178,5 +178,6 @@ public class Logging {
     private void logInfo(final String message) {
         System.out.println(message);
         logger.info(message);
+        fileHandler.close();
     }
 }

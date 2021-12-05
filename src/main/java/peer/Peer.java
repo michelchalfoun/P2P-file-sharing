@@ -5,7 +5,6 @@ import config.PeerInfoConfig;
 import neighbor.Neighbor;
 import pieces.PieceManager;
 import timer.UnchokingTimer;
-import timer.OptimisticUnchokingTimer;
 import messages.HandshakeMessage;
 import logging.Logging;
 
@@ -14,7 +13,6 @@ import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReferenceArray;
-import java.util.stream.Collectors;
 
 /**
  * Main class that sets up the main Peer process (spins up all of the listener threads and keeps
@@ -29,7 +27,6 @@ public class Peer {
     private final PeerInfoConfig peerInfoConfig;
 
     private UnchokingTimer unchokingTimer;
-    private OptimisticUnchokingTimer optimisticUnchokingTimer;
 
     private final Map<Integer, Neighbor> neighborData;
     private AtomicReferenceArray<Boolean> pieceIndexes;
@@ -43,7 +40,7 @@ public class Peer {
 
 //        neighborData.entrySet().stream().filter(entry -> entry.getValue().getChoke()).collect(Collectors.toList());
         this.peerID = peerID;
-        this.logger = new Logging();
+        logger = new Logging();
 
         // Setup config parsers
         commonConfig = new CommonConfig();
@@ -96,7 +93,6 @@ public class Peer {
 
             // Sends handshake message
             outputStream.writeObject(handshakeMessage);
-            System.out.println("Sent handshake message to: " + handshakeMessage);
             outputStream.flush();
 
             final PieceManager pieceManager = new PieceManager(peerID, commonConfig.getFileName(), commonConfig.getFileSize(), commonConfig.getPieceSize(), metadata.isHasFile());
@@ -126,8 +122,8 @@ public class Peer {
             neighborData.put(neighborPeerID, new Neighbor(neighborSocket, neighborPeerID));
 
             // Log connection
-            logger.TCP_connect(this.peerID, neighborPeerID);
-
+            logger.TCP_connect(peerID, neighborPeerID);
+            logger.TCP_receive(neighborPeerID, peerID);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -139,6 +135,7 @@ public class Peer {
             while (true) {
                 Socket socket = listenerSocket.accept();
                 final PieceManager pieceManager = new PieceManager(peerID, commonConfig.getFileName(), commonConfig.getFileSize(), commonConfig.getPieceSize(), metadata.isHasFile());
+//                logger.TCP_receive(neighborPeerID, this.peerID);
                 new PeerConnection(peerID, socket, pieceIndexes, neighborData, pieceManager, requestedPieces).start();
             }
         } catch (IOException e) {
@@ -157,11 +154,11 @@ public class Peer {
         peerInfoConfig.getPrevPeers(peerID).forEach(this::setupConnection);
         peerInfoConfig.getPrevPeers(peerID).forEach(this::sendHandshake);
 
-        unchokingTimer = new UnchokingTimer(peerID, commonConfig.getUnchokingInterval(), commonConfig.getNumberOfPreferredNeighbors(), neighborData);
+        unchokingTimer = new UnchokingTimer(peerID, commonConfig.getUnchokingInterval(), commonConfig.getOptimisticUnchokingInterval(), commonConfig.getNumberOfPreferredNeighbors(), neighborData);
         unchokingTimer.start();
 
-        optimisticUnchokingTimer = new OptimisticUnchokingTimer(commonConfig.getOptimisticUnchokingInterval());
-        optimisticUnchokingTimer.start();
+//        optimisticUnchokingTimer = new OptimisticUnchokingTimer(commonConfig.getOptimisticUnchokingInterval());
+//        optimisticUnchokingTimer.start();
 
         listenForConnections();
     }

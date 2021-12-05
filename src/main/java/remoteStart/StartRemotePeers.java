@@ -124,6 +124,12 @@ public class StartRemotePeers {
                                     ex.printStackTrace();
                                 }
 
+                                try {
+                                    channel.sendSignal("KILL");
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+
                                 channel.disconnect();
                                 session.disconnect();
                             }

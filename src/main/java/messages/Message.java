@@ -29,23 +29,9 @@ public class Message
         this.payloadBytes = new byte[] {};
     }
 
-    private void readObject(ObjectInputStream aInputStream) throws ClassNotFoundException, IOException {
-//        byte one = aInputStream.readByte();
-//        System.out.println("One: " + one);
-//        byte two = aInputStream.readByte();
-//        System.out.println("Two: " + two);
-//        byte three = aInputStream.readByte();
-//        System.out.println("Three: " + three);
-//        byte four = aInputStream.readByte();
-//        System.out.println("Four: " + four);
-//
-////
-//        messageLength = new util.IntBytes(new byte[]{one, two, three, four}).getIntValue();
-//
+    private void readObject(final ObjectInputStream aInputStream) throws ClassNotFoundException, IOException {
         messageLength = aInputStream.readInt();
         messageType = aInputStream.readByte();
-
-        System.out.println("Message length: " + messageLength + " and message type: " + MessageType.values()[messageType]);
 
         payloadBytes = new byte[messageLength - 1];
 
@@ -54,12 +40,10 @@ public class Message
         }
     }
 
-    private void writeObject(ObjectOutputStream aOutputStream) throws IOException {
+    private void writeObject(final ObjectOutputStream aOutputStream) throws IOException {
         aOutputStream.writeInt(messageLength);
         aOutputStream.write(messageType);
         aOutputStream.write(payloadBytes);
-
-        System.out.println("*SENT*: message type: " + MessageType.values()[messageType] + " at " + System.currentTimeMillis());
     }
 
     public MessageType getMessageType() {
