@@ -46,8 +46,7 @@ public class UnchokingTimer extends Thread {
         payloadFactory = new PayloadFactory();
 
         threadLocalRandom = ThreadLocalRandom.current();
-
-        this.logger = new Logging();
+        logger = Logging.getInstance();
     }
 
     public void run() {

@@ -61,7 +61,7 @@ public class PeerConnection extends Thread {
         hasSentBitfieldMessage = false;
         isHandshakeDone = false;
         neighborConnectionChoked = true;
-        logger = new Logging();
+        logger = Logging.getInstance();
         this.peerID = peerID;
         this.hasSentHandshakeMessage = hasSentHandshakeMessage;
         this.neighborData = neighborData;
@@ -116,9 +116,10 @@ public class PeerConnection extends Thread {
                                 (HandshakeMessage) inputStream.readObject();
 
                         neighborID = handshakeMessage.getPeerID();
+                        logger.TCP_receive(neighborID, peerID);
                         System.out.println("Received handshake message: " + handshakeMessage);
 
-                        final Neighbor neighbor = new Neighbor(connection, neighborID, outputStream);
+                        final Neighbor neighbor = new Neighbor(connection, neighborID, outputStream, new AtomicReferenceArray<>(pieces.length()));
                         neighborData.put(neighborID, neighbor);
 
                         if (!hasSentHandshakeMessage) {
@@ -128,10 +129,6 @@ public class PeerConnection extends Thread {
                         } else {
                             sendBitfieldMessage();
                         }
-                        // TODO
-                        // After handshaking, peer A sends a ‘bitfield’ message to let peer
-                        // know which file pieces it has. Peer B will also send its ‘bitfield’
-                        // message to peer A, unless it has no pieces.
                         isHandshakeDone = true;
                     } else {
                         // Other messages
@@ -181,7 +178,7 @@ public class PeerConnection extends Thread {
                 final int obtainedPieceID = payloadFactory.createPieceIndexPayload(message).getPieceID();
                 final AtomicReferenceArray bitfield = neighborData.get(neighborID).getBitfield();
                 bitfield.set(obtainedPieceID, true);
-                logger.receiveHaveMsg(neighborID, peerID, obtainedPieceID);
+                logger.receiveHaveMsg(peerID, neighborID, obtainedPieceID);
                 // TODO
 //                 Check if it should send a not interested message
                 if (AtomicReferenceArrayHelper.isInterested(pieces, bitfield)) {

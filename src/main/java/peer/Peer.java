@@ -40,7 +40,9 @@ public class Peer {
 
 //        neighborData.entrySet().stream().filter(entry -> entry.getValue().getChoke()).collect(Collectors.toList());
         this.peerID = peerID;
-        logger = new Logging();
+
+        logger = Logging.getInstance();
+        logger.setPeerID(peerID);
 
         // Setup config parsers
         commonConfig = new CommonConfig();
@@ -123,7 +125,6 @@ public class Peer {
 
             // Log connection
             logger.TCP_connect(peerID, neighborPeerID);
-            logger.TCP_receive(neighborPeerID, peerID);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -133,9 +134,8 @@ public class Peer {
     private void listenForConnections() {
         try {
             while (true) {
-                Socket socket = listenerSocket.accept();
+                final Socket socket = listenerSocket.accept();
                 final PieceManager pieceManager = new PieceManager(peerID, commonConfig.getFileName(), commonConfig.getFileSize(), commonConfig.getPieceSize(), metadata.isHasFile());
-//                logger.TCP_receive(neighborPeerID, this.peerID);
                 new PeerConnection(peerID, socket, pieceIndexes, neighborData, pieceManager, requestedPieces).start();
             }
         } catch (IOException e) {

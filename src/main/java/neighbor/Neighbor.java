@@ -27,9 +27,14 @@ public class Neighbor {
         this.interested = false;
     }
 
-    public Neighbor(final Socket socket, final int peerID, final ObjectOutputStream outputStream) {
+    public Neighbor(final Socket socket, final int peerID, final ObjectOutputStream outputStream, final AtomicReferenceArray bitfield) {
         this(socket, peerID);
         this.outputStream = outputStream;
+        this.bitfield = bitfield;
+
+        for (int index = 0; index < bitfield.length(); index++) {
+            bitfield.set(index, false);
+        }
     }
 
     public synchronized int getPeerID() {

@@ -23,3 +23,6 @@ out/
 
 # Log files
 logs/*
+
+
+project_tests/project_local_test/logs/*
