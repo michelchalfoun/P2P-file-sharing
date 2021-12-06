@@ -184,8 +184,9 @@ public class PeerConnection extends Thread {
                 final AtomicReferenceArray bitfield = neighborData.get(neighborID).getBitfield();
                 bitfield.set(obtainedPieceID, true);
                 logger.receiveHaveMsg(peerID, neighborID, obtainedPieceID);
-                // TODO
-//                 Check if it should send a not interested message
+
+                // TODO Check if it should send a not interested message
+
                 if (AtomicReferenceArrayHelper.isInterested(pieces, bitfield)) {
                     sendIntentMessage(true);
                 }
@@ -203,13 +204,13 @@ public class PeerConnection extends Thread {
                 break;
             case REQUEST:
                 final int requestedPieceID = payloadFactory.createPieceIndexPayload(message).getPieceID();
-                System.out.println("Received request message for " + requestedPieceID + " from neighbor " + neighborID + " at " + System.currentTimeMillis());
 
                 // TODO
 //                Even though peer A sends a ‘request’ message to peer B, it may not receive a ‘piece’
 //                message corresponding to it. This situation happens when peer B re-determines
 //                preferred neighbors or optimistically unchoked a neighbor and peer A is choked as the
 //                result before peer B responds to peer A. Your program should consider this case.
+
                 if (!neighborData.get(neighborID).isChoked()) {
                     logger.custom("Received request message for " + requestedPieceID + " from neighbor " + neighborID);
                     sendPiece(requestedPieceID);
@@ -217,57 +218,65 @@ public class PeerConnection extends Thread {
                 break;
             case PIECE:
                 final PiecePayload piecePayload = payloadFactory.createPiecePayload(message);
+
+                if (pieces.get(piecePayload.getPieceID())) {
+                    logger.custom("%%%% has the price already");
+                }
+
                 pieceManager.savePiece(piecePayload.getPieceID(), piecePayload.getPayload());
+
+
+                /**
+                 * Peer 1
+                 *
+                 * pieces=[T]
+                 * #=0
+                 *
+                 *      peer 2
+                 *          pieces=[]
+                 *      peer 3
+                 *          pieces=[]
+                 */
+
+                //
                 pieces.set(piecePayload.getPieceID(), true);
 
+                numberOfPiecesDownloaded.getAndIncrement();
+
+
                 neighborData.get(neighborID).addNumberOfDownloadedBytes(piecePayload.getPayload().length);
-                System.out.println("Obtained piece " + piecePayload.getPieceID() + " from " + neighborID);
-                broadcastReceivedPiece(piecePayload.getPieceID());
 
                 logger.downloadingPiece(peerID, neighborID, piecePayload.getPieceID(), numberOfPiecesDownloaded.get());
 
                 // Has the entire file
-                if (hasAllPieces()) {
-                    pieceManager.consolidatePiecesIntoFile();
+                if (pieceManager.hasAllPieces()) {
+                    pieceManager.consolidatePiecesIntoFile(pieces);
                     // TODO: should it send uninterested?
                     sendIntentMessage(false);
                     logger.completionOfDownload(peerID);
-                } else if (!neighborConnectionChoked) { // Request another piece if unchoked
+                }
+
+                broadcastReceivedPiece(piecePayload.getPieceID());
+
+                if (!pieceManager.hasAllPieces() && !neighborConnectionChoked) { // Request another piece if unchoked
                     requestRandomPiece();
                 }
-                numberOfPiecesDownloaded.getAndIncrement();
                 break;
         }
     }
-
-//    private int countNumberOfPieces() {
-//        int numberOfPieces = 0;
-//        for (int index = 0; index < pieces.length(); index++) {
-//            if (pieces.get(index)) numberOfPieces++;
-//        }
-//        return numberOfPieces;
-//    }
 
     private void requestRandomPiece() {
         final RandomMissingPieceGenerator randomGenerator =
                 new RandomMissingPieceGenerator(pieces, neighborData.get(neighborID).getBitfield(), peerRequestedPieces);
         int pieceIndex = randomGenerator.getRandomPiece();
 
-        if(pieceIndex == -1){
+        if (pieceIndex == -1) {
             // TODO: Maybe not what we need need it to do?
             sendIntentMessage(false);
+            logger.custom("Error!");
         } else {
             sendRequestMessage(pieceIndex);
         }
-    }
-
-    private boolean hasAllPieces() {
-        for (int index = 0; index < pieces.length(); index++) {
-            if (!pieces.get(index)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     private void broadcastReceivedPiece(final int pieceID) {
@@ -275,8 +284,9 @@ public class PeerConnection extends Thread {
     }
 
     private void sendPiece(final int pieceID) {
-        System.out.println("Sending piece to neighbor " + neighborID + " at " + System.currentTimeMillis());
-        final byte[] pieceBytes = pieceManager.getPiece(pieceID);
+        System.out.println("Peer " + peerID + " sending to neighbor " + neighborID + " for piece " + pieceID + " at " + System.currentTimeMillis());
+        final byte[] pieceBytes = pieceManager.getPiece(pieceID, pieces);
+        logger.custom("Gathered piece " + pieceID + ", now sending!");
         final Message pieceMessage =
                 messageFactory.createMessage(
                         payloadFactory.createPiecePayload(pieceID, pieceBytes), MessageType.PIECE);
@@ -303,9 +313,9 @@ public class PeerConnection extends Thread {
     }
 
     private void sendRequestMessage(final int pieceIndex) {
-        System.out.println("Sending request to " + neighborID + " at " + System.currentTimeMillis());
         final Message request =
                 messageFactory.createMessage(payloadFactory.createPieceIndexPayload(pieceIndex), MessageType.REQUEST);
+        logger.custom("Sending request to neighbor " + neighborID + " for piece " + pieceIndex);
         neighborData.get(neighborID).sendMessageInOutputStream(request);
         peerRequestedPieces.add(pieceIndex);
     }

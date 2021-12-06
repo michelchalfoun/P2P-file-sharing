@@ -30,17 +30,17 @@ public class Peer {
     private UnchokingTimer unchokingTimer;
 
     private final Map<Integer, Neighbor> neighborData;
+    private final PeerMetadata metadata;
+
     private AtomicReferenceArray<Boolean> pieceIndexes;
     private AtomicInteger numberOfPiecesDownloaded;
-    private final PeerMetadata metadata;
+    private PieceManager pieceManager;
+    private Set<Integer> requestedPieces;
 
     private ServerSocket listenerSocket;
 
-    private Set<Integer> requestedPieces;
 
     public Peer(final int peerID) throws IOException {
-
-//        neighborData.entrySet().stream().filter(entry -> entry.getValue().getChoke()).collect(Collectors.toList());
         this.peerID = peerID;
 
         logger = Logging.getInstance();
@@ -55,6 +55,13 @@ public class Peer {
         neighborData = new ConcurrentHashMap<>();
 
         initializePieceIndexes();
+        pieceManager =
+                new PieceManager(
+                        peerID,
+                        commonConfig.getFileName(),
+                        commonConfig.getFileSize(),
+                        commonConfig.getPieceSize(),
+                        numberOfPiecesDownloaded);
 
         ConcurrentHashMap<Integer, Integer> map = new ConcurrentHashMap<>();
         requestedPieces = map.newKeySet();
@@ -101,7 +108,6 @@ public class Peer {
             outputStream.writeObject(handshakeMessage);
             outputStream.flush();
 
-            final PieceManager pieceManager = new PieceManager(peerID, commonConfig.getFileName(), commonConfig.getFileSize(), commonConfig.getPieceSize(), numberOfPiecesDownloaded);
             new PeerConnection(
                             peerID,
                             neighborSocket,
@@ -139,7 +145,6 @@ public class Peer {
         try {
             while (true) {
                 final Socket socket = listenerSocket.accept();
-                final PieceManager pieceManager = new PieceManager(peerID, commonConfig.getFileName(), commonConfig.getFileSize(), commonConfig.getPieceSize(), numberOfPiecesDownloaded);
                 new PeerConnection(peerID, socket, pieceIndexes, neighborData, pieceManager, requestedPieces, numberOfPiecesDownloaded).start();
             }
         } catch (IOException e) {
