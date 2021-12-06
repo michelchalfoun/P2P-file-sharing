@@ -119,8 +119,7 @@ public class Peer {
     private void setupConnection(int neighborPeerID, final PeerMetadata metadata) {
         try {
 
-            final Socket neighborSocket =
-                    new Socket(metadata.getHostName(), metadata.getListeningPort());
+            final Socket neighborSocket = new Socket(metadata.getHostName(), metadata.getListeningPort());
             neighborData.put(neighborPeerID, new Neighbor(neighborSocket, neighborPeerID));
 
             // Log connection

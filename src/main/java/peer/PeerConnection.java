@@ -154,7 +154,6 @@ public class PeerConnection extends Thread {
 
     private void processMessage() throws IOException, ClassNotFoundException {
         final Message message = (Message) inputStream.readObject();
-        System.out.println("Succesfully read message");
 
         switch (message.getMessageType()) {
             case CHOKE:

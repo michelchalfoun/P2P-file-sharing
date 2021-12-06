@@ -6,31 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class PieceManager {
-    //    public static void main(String[] args) {
-    //
-    //        PieceManager m = new PieceManager(1001, "lol2", 102, 5, true);
-    //
-    //        int s = 0;
-    //        byte[] total = new byte[102];
-    //
-    //        PieceManager m2 = new PieceManager(1001, "lol2", 102, 5, true);
-    //
-    //
-    //        for (int i = 0; i < 21; i++) {
-    //            byte[] test = m.getPiece(i);
-    //            for (int j = 0; j < test.length; j++) total[s++] = test[j];
-    //            m2.savePiece(i, test);
-    //        }
-    //
-    //        System.out.println(new String(total, StandardCharsets.UTF_8));
-    //
-    //        try {
-    //            m2.consolidatePiecesIntoFile();
-    //        } catch (IOException e) {
-    //            e.printStackTrace();
-    //        }
-    //
-    //    }
 
     private final int peerID;
     private final String fileName;
