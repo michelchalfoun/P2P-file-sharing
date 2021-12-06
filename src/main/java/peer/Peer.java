@@ -12,6 +12,7 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
@@ -30,6 +31,7 @@ public class Peer {
 
     private final Map<Integer, Neighbor> neighborData;
     private AtomicReferenceArray<Boolean> pieceIndexes;
+    private AtomicInteger numberOfPiecesDownloaded;
     private final PeerMetadata metadata;
 
     private ServerSocket listenerSocket;
@@ -78,6 +80,8 @@ public class Peer {
                 pieceIndexes.set(pieceId, false);
             }
         }
+
+        numberOfPiecesDownloaded = new AtomicInteger(metadata.isHasFile() ? numberOfPieces : 0);
     }
 
     private void sendHandshake(final int neighborPeerID, final PeerMetadata metadata) {
@@ -97,7 +101,7 @@ public class Peer {
             outputStream.writeObject(handshakeMessage);
             outputStream.flush();
 
-            final PieceManager pieceManager = new PieceManager(peerID, commonConfig.getFileName(), commonConfig.getFileSize(), commonConfig.getPieceSize(), metadata.isHasFile());
+            final PieceManager pieceManager = new PieceManager(peerID, commonConfig.getFileName(), commonConfig.getFileSize(), commonConfig.getPieceSize(), numberOfPiecesDownloaded);
             new PeerConnection(
                             peerID,
                             neighborSocket,
@@ -107,7 +111,8 @@ public class Peer {
                             outputStream,
                             inputStream,
                             pieceManager,
-                            requestedPieces)
+                            requestedPieces,
+                    numberOfPiecesDownloaded)
                     .start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -134,8 +139,8 @@ public class Peer {
         try {
             while (true) {
                 final Socket socket = listenerSocket.accept();
-                final PieceManager pieceManager = new PieceManager(peerID, commonConfig.getFileName(), commonConfig.getFileSize(), commonConfig.getPieceSize(), metadata.isHasFile());
-                new PeerConnection(peerID, socket, pieceIndexes, neighborData, pieceManager, requestedPieces).start();
+                final PieceManager pieceManager = new PieceManager(peerID, commonConfig.getFileName(), commonConfig.getFileSize(), commonConfig.getPieceSize(), numberOfPiecesDownloaded);
+                new PeerConnection(peerID, socket, pieceIndexes, neighborData, pieceManager, requestedPieces, numberOfPiecesDownloaded).start();
             }
         } catch (IOException e) {
             e.printStackTrace();

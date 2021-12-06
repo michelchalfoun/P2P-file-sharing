@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 public class PieceManager {
 
@@ -12,24 +15,25 @@ public class PieceManager {
     private final int pieceSize;
     private final int numberOfPieces;
     private final int fileSize;
-    private boolean hasFile;
+
+    private final AtomicInteger numberOfPiecesDownloaded;
 
     public PieceManager(
             final int peerID,
             final String fileName,
             final int fileSize,
             final int pieceSize,
-            final boolean hasFile) {
+            final AtomicInteger numberOfPiecesDownloaded) {
         this.peerID = peerID;
         this.fileName = fileName;
         this.fileSize = fileSize;
         this.pieceSize = pieceSize;
-        this.hasFile = hasFile;
         this.numberOfPieces = (int) Math.ceil((float) fileSize / (float) pieceSize);
+        this.numberOfPiecesDownloaded = numberOfPiecesDownloaded;
     }
 
     public byte[] getPiece(final int pieceID) {
-        if (hasFile) {
+        if (numberOfPiecesDownloaded.get() == numberOfPieces) {
             try {
                 byte[] allBytesInFile = Files.readAllBytes(Paths.get(getFilePath()));
                 byte[] pieceBytes =
@@ -70,7 +74,6 @@ public class PieceManager {
             newPiece.delete();
         }
         createFileWithBytes(getFilePath(), fileBytes);
-        hasFile = true;
     }
 
     private void createFileWithBytes(final String fileName, final byte[] bytes) {
@@ -81,7 +84,7 @@ public class PieceManager {
                 throw new IllegalStateException("Couldn't create dir: " + parent);
             }
             file.createNewFile();
-            Files.write(file.toPath(), bytes);
+            Files.write(file.toPath(), bytes, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE, StandardOpenOption.SYNC);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -23,7 +23,7 @@ public class RandomMissingPieceGenerator {
     }
 
     // TODO: synchronize
-    public int getRandomPiece() {
+    public synchronized int getRandomPiece() {
         final ArrayList<Integer> missingPieces = new ArrayList<>();
 
         for (int index = 0; index < neighborBitfield.length(); index++) {

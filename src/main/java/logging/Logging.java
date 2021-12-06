@@ -32,6 +32,8 @@ public class Logging {
 //    private SimpleFormatter formatter;
     private CustomFormatter formatter;
 
+    private boolean prints;
+
     public Logging() {
         logger = Logger.getLogger("P2PLog");
         logger.setUseParentHandlers(false);
@@ -137,8 +139,12 @@ public class Logging {
         logInfo("Peer " + peerID_1 + " has downloaded the complete file");
     }
 
+    public void custom(final String string) {
+        logInfo(string);
+    }
+
     private void logInfo(final String message) {
-        System.out.println(message);
+        if (prints) System.out.println(message);
         logger.info(message);
 //        fileHandler.close();
     }
@@ -151,6 +157,7 @@ public class Logging {
     }
 
     public void setPeerID(final int peerID) {
+        prints = peerID == 1005;
         this.peerID = peerID;
         try {
             setFile();

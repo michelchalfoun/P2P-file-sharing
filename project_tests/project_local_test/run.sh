@@ -1,4 +1,7 @@
 rm -rf 1002 && rm -rf 1003 && rm -rf 1004 && rm -rf 1005
+
+sleep 5
+
 java -jar peerProcess.jar 1001 &
 PID1=$!
 sleep 1
