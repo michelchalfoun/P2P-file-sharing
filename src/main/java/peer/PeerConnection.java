@@ -7,6 +7,7 @@ import messages.MessageType;
 import messages.payload.impl.BitfieldPayload;
 import messages.payload.PayloadFactory;
 import messages.payload.impl.PiecePayload;
+import neighbor.NeighborDataWrapper;
 import pieces.PieceManager;
 import pieces.Pieces;
 import neighbor.Neighbor;
@@ -38,7 +39,7 @@ public class PeerConnection extends Thread {
     private boolean neighborConnectionChoked;
 
     private final Pieces pieces;
-    private final Map<Integer, Neighbor> neighborData;
+    private final NeighborDataWrapper neighborData;
 
     private final MessageFactory messageFactory;
     private final PayloadFactory payloadFactory;
@@ -54,7 +55,7 @@ public class PeerConnection extends Thread {
             final Socket neighborSocket,
             final boolean hasSentHandshakeMessage,
             final Pieces pieces,
-            final Map<Integer, Neighbor> neighborData,
+            final NeighborDataWrapper neighborData,
             final PieceManager pieceManager,
             final Set<Integer> peerRequestedPieces,
             final int numberOfNeighbors,
@@ -81,7 +82,7 @@ public class PeerConnection extends Thread {
             final int peerID,
             final Socket neighborSocket,
             final Pieces pieces,
-            final Map<Integer, Neighbor> neighborData,
+            final NeighborDataWrapper neighborData,
             final PieceManager pieceManager,
             final Set<Integer> peerRequestedPieces,
             final int numberOfNeighbors,
@@ -103,7 +104,7 @@ public class PeerConnection extends Thread {
             final Socket neighborSocket,
             final boolean hasSentHandshakeMessage,
             final Pieces pieces,
-            final Map<Integer, Neighbor> neighborData,
+            final NeighborDataWrapper neighborData,
             final ObjectOutputStream outputStream,
             final ObjectInputStream inputStream,
             final PieceManager pieceManager,
@@ -126,28 +127,30 @@ public class PeerConnection extends Thread {
                     neighborID = handshakeMessage.getPeerID();
                     logger.TCP_receive(peerID, neighborID);
 
-                    final Neighbor neighbor = new Neighbor(connection, neighborID, outputStream, pieces.getNumberOfPieces());
-                    neighborData.put(neighborID, neighbor);
+                    final Neighbor neighbor = new Neighbor(connection, neighborID, inputStream, outputStream, pieces.getNumberOfPieces());
+                    neighborData.getNeighborData().put(neighborID, neighbor);
 
                     if (!hasSentHandshakeMessage) {
                         final HandshakeMessage responseHandshakeMessage =
                                 new HandshakeMessage(peerID);
-                        neighborData.get(neighborID).sendMessageInOutputStream(responseHandshakeMessage);
+                        neighborData.getNeighborData().get(neighborID).sendMessageInOutputStream(responseHandshakeMessage);
                     } else {
                         sendBitfieldMessage();
                     }
                     isHandshakeDone = true;
                 } catch (IOException e) {
-                    e.printStackTrace();
+//                    e.printStackTrace();
                 } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
+//                    e.printStackTrace();
                 }
             } else {
                 // Other messages
                 try {
                     processMessage();
                 } catch (ClassNotFoundException e) {
+//                    e.printStackTrace();
                 } catch (IOException e) {
+//                    e.printStackTrace();
                 }
             }
 //            if (!isRunning.get()) {
@@ -160,15 +163,15 @@ public class PeerConnection extends Thread {
 //                interrupt();
 //            }
         }
-        logger.custom("Neighbor " + neighborID + " isRunning is " + isRunning.get());
-        neighborData.get(neighborID).closeStream();
-        try {
-            inputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Ended connection between " + peerID + " and " + neighborID);
-        interrupt();
+        logger.custom("(termination) Neighbor " + neighborID + " isRunning is " + isRunning.get());
+//        neighborData.get(neighborID).closeStream();
+//        try {
+//            inputStream.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        System.out.println("Ended connection between " + peerID + " and " + neighborID);
+//        interrupt();
     }
 
     private void processMessage() throws IOException, ClassNotFoundException {
@@ -186,16 +189,16 @@ public class PeerConnection extends Thread {
                 requestRandomPiece();
                 break;
             case INTERESTED:
-                neighborData.get(neighborID).setInterested(true);
+                neighborData.getNeighborData().get(neighborID).setInterested(true);
                 logger.receiveInterestedMsg(peerID, neighborID);
                 break;
             case NOT_INTERESTED:
-                neighborData.get(neighborID).setInterested(false);
+                neighborData.getNeighborData().get(neighborID).setInterested(false);
                 logger.receiveNotInterestedMsg(peerID, neighborID);
                 break;
             case HAVE:
                 final int obtainedPieceID = payloadFactory.createPieceIndexPayload(message).getPieceID();
-                final Pieces neighborPieces = neighborData.get(neighborID).getPieces();
+                final Pieces neighborPieces = neighborData.getNeighborData().get(neighborID).getPieces();
 
                 if (neighborPieces.hasAndSet(obtainedPieceID) != -1) {
                     logger.receiveHaveMsg(peerID, neighborID, obtainedPieceID);
@@ -206,7 +209,7 @@ public class PeerConnection extends Thread {
             case BITFIELD:
                 final BitfieldPayload payload = payloadFactory.createBitfieldPayload(message, pieces.getNumberOfPieces());
 
-                neighborData.get(neighborID).setPieces(payload.getPieces());
+                neighborData.getNeighborData().get(neighborID).setPieces(payload.getPieces());
                 sendIntentMessage(pieces.isInterested(payload.getPieces()));
 
                 if (!hasSentBitfieldMessage) {
@@ -216,7 +219,7 @@ public class PeerConnection extends Thread {
             case REQUEST:
                 final int requestedPieceID = payloadFactory.createPieceIndexPayload(message).getPieceID();
 
-                if (!neighborData.get(neighborID).isChoked()) {
+                if (!neighborData.getNeighborData().get(neighborID).isChoked()) {
                     sendPiece(requestedPieceID);
                 }
                 break;
@@ -226,7 +229,7 @@ public class PeerConnection extends Thread {
                 final int numberOfPiecesDownloaded = pieces.hasAndSet(piecePayload.getPieceID());
                 if (numberOfPiecesDownloaded != -1) {
                     pieceManager.savePiece(piecePayload.getPieceID(), piecePayload.getPayload());
-                    neighborData.get(neighborID).addNumberOfDownloadedBytes(piecePayload.getPayload().length);
+                    neighborData.getNeighborData().get(neighborID).addNumberOfDownloadedBytes(piecePayload.getPayload().length);
                     logger.downloadingPiece(peerID, neighborID, piecePayload.getPieceID(), numberOfPiecesDownloaded);
 
                     if (pieceManager.hasAllPieces()) {
@@ -245,7 +248,7 @@ public class PeerConnection extends Thread {
     }
 
     private void requestRandomPiece() {
-        int pieceIndex = pieces.getRandomPiece(neighborData.get(neighborID).getPieces());
+        int pieceIndex = pieces.getRandomPiece(neighborData.getNeighborData().get(neighborID).getPieces());
 
         if (pieceIndex == -1) {
             sendIntentMessage(false);
@@ -255,7 +258,7 @@ public class PeerConnection extends Thread {
     }
 
     private void broadcastReceivedPiece(final int pieceID) {
-        neighborData.values().forEach(neighbor -> sendHaveMessage(pieceID, neighbor));
+        neighborData.getNeighborData().values().forEach(neighbor -> sendHaveMessage(pieceID, neighbor));
     }
 
     private void sendPiece(final int pieceID) {
@@ -263,7 +266,7 @@ public class PeerConnection extends Thread {
         final Message pieceMessage =
                 messageFactory.createMessage(
                         payloadFactory.createPiecePayload(pieceID, pieceBytes), MessageType.PIECE);
-        neighborData.get(neighborID).sendMessageInOutputStream(pieceMessage);
+        neighborData.getNeighborData().get(neighborID).sendMessageInOutputStream(pieceMessage);
     }
 
     private void sendHaveMessage(final int pieceID, final Neighbor targetNeighbor) {
@@ -281,13 +284,13 @@ public class PeerConnection extends Thread {
                                 : MessageType.NOT_INTERESTED.getValue());
         logger.custom("Sending intent message to " +neighborID + " and isRunning: " + isRunning.get());
         if (!isRunning.get()) return;
-        neighborData.get(neighborID).sendMessageInOutputStream(notInterested);
+        neighborData.getNeighborData().get(neighborID).sendMessageInOutputStream(notInterested);
     }
 
     private void sendRequestMessage(final int pieceIndex) {
         final Message request =
                 messageFactory.createMessage(payloadFactory.createPieceIndexPayload(pieceIndex), MessageType.REQUEST);
-        neighborData.get(neighborID).sendMessageInOutputStream(request);
+        neighborData.getNeighborData().get(neighborID).sendMessageInOutputStream(request);
         peerRequestedPieces.add(pieceIndex);
     }
 
@@ -297,15 +300,15 @@ public class PeerConnection extends Thread {
         final Message bitfieldMessage =
                 messageFactory.createMessage(bitfieldPayload, MessageType.BITFIELD);
 
-        neighborData.get(neighborID).sendMessageInOutputStream(bitfieldMessage);
+        neighborData.getNeighborData().get(neighborID).sendMessageInOutputStream(bitfieldMessage);
         hasSentBitfieldMessage = true;
     }
 
     private void checkAndConsolidate(){
-        if (neighborData.size() != numberOfNeighbors) return;
+        if (neighborData.getNeighborData().size() != numberOfNeighbors) return;
         boolean allFilesDownloaded = pieces.getNumberOfPiecesDownloaded() == pieces.getNumberOfPieces();
         if (allFilesDownloaded) {
-            for (Map.Entry<Integer, Neighbor> neighbor : neighborData.entrySet()) {
+            for (Map.Entry<Integer, Neighbor> neighbor : neighborData.getNeighborData().entrySet()) {
                 if (neighbor.getValue().getPieces().getNumberOfPiecesDownloaded()
                         != neighbor.getValue().getPieces().getNumberOfPieces()) {
                     allFilesDownloaded = false;
@@ -314,9 +317,8 @@ public class PeerConnection extends Thread {
         }
 
         if (allFilesDownloaded) {
-            pieceManager.consolidatePiecesIntoFile();
-            isRunning.set(false);
-            logger.custom("isRunning is NOW false");
+            pieceManager.consolidatePiecesIntoFile(neighborData);
+            logger.custom("isRunning is NOW false from neighbor " + neighborID);
         }
     }
 }

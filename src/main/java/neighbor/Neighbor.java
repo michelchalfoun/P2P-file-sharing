@@ -1,5 +1,6 @@
 package neighbor;
 
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Objects;
@@ -11,6 +12,7 @@ import pieces.Pieces;
 public class Neighbor {
     private final Socket socket;
     private ObjectOutputStream outputStream;
+    private ObjectInputStream inputStream;
 
     private final int peerID;
     private Pieces pieces;
@@ -27,9 +29,10 @@ public class Neighbor {
         this.interested = false;
     }
 
-    public Neighbor(final Socket socket, final int peerID, final ObjectOutputStream outputStream, final int numberOfPieces) {
+    public Neighbor(final Socket socket, final int peerID, final ObjectInputStream inputStream, final ObjectOutputStream outputStream, final int numberOfPieces) {
         this(socket, peerID);
         this.outputStream = outputStream;
+        this.inputStream = inputStream;
         this.pieces = new Pieces(numberOfPieces);
     }
 
@@ -73,20 +76,20 @@ public class Neighbor {
         this.isChoked = choked;
     }
 
+    public ObjectOutputStream getOutputStream() {
+        return outputStream;
+    }
+
+    public ObjectInputStream getInputStream() {
+        return inputStream;
+    }
+
     public synchronized void sendMessageInOutputStream(final Message message) {
         try {
             outputStream.writeObject(message);
             outputStream.flush();
         } catch (java.io.IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public synchronized void closeStream() {
-        try {
-            outputStream.close();
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         }
     }
 
@@ -95,7 +98,7 @@ public class Neighbor {
             outputStream.writeObject(message);
             outputStream.flush();
         } catch (java.io.IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         }
     }
 

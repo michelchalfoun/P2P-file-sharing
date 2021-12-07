@@ -3,6 +3,7 @@ package peer;
 import config.CommonConfig;
 import config.PeerInfoConfig;
 import neighbor.Neighbor;
+import neighbor.NeighborDataWrapper;
 import pieces.PieceManager;
 import pieces.Pieces;
 import timer.UnchokingTimer;
@@ -30,7 +31,7 @@ public class Peer {
 
     private UnchokingTimer unchokingTimer;
 
-    private final Map<Integer, Neighbor> neighborData;
+    private final NeighborDataWrapper neighborData;
     private final PeerMetadata metadata;
 
     private Pieces pieces;
@@ -40,9 +41,6 @@ public class Peer {
     private ServerSocket listenerSocket;
     private final AtomicBoolean isRunning;
 
-    private final ArrayList<PeerConnection> listenerConnections;
-    private final ArrayList<PeerConnection> setupConnections;
-
     public Peer(final int peerID) throws IOException {
         this.peerID = peerID;
 
@@ -50,9 +48,9 @@ public class Peer {
 
         logger = Logging.getInstance();
         logger.setPeerID(peerID);
-
-        listenerConnections = new ArrayList<>();
-        setupConnections = new ArrayList<>();
+//
+//        listenerConnections = new ArrayList<>();
+//        setupConnections = new ArrayList<>();
 
         // Setup config parsers
         commonConfig = new CommonConfig();
@@ -60,7 +58,7 @@ public class Peer {
         metadata = peerInfoConfig.getPeerInfo(peerID);
 
         // Initialize socket and neighbor information storage
-        neighborData = new ConcurrentHashMap<>();
+        neighborData = new NeighborDataWrapper(isRunning);
 
         initializePieceIndexes();
         pieceManager =
@@ -107,7 +105,7 @@ public class Peer {
         try {
 
             // Get stored socked for neighbor and setup input and output streams
-            final Socket neighborSocket = neighborData.get(neighborPeerID).getSocket();
+            final Socket neighborSocket = neighborData.getNeighborData().get(neighborPeerID).getSocket();
             final ObjectOutputStream outputStream =
                     new ObjectOutputStream(neighborSocket.getOutputStream());
             outputStream.flush();
@@ -131,7 +129,7 @@ public class Peer {
                             isRunning);
 
             newSetup.start();
-            setupConnections.add(newSetup);
+//            setupConnections.add(newSetup);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -144,7 +142,7 @@ public class Peer {
         try {
 
             final Socket neighborSocket = new Socket(metadata.getHostName(), metadata.getListeningPort());
-            neighborData.put(neighborPeerID, new Neighbor(neighborSocket, neighborPeerID));
+            neighborData.getNeighborData().put(neighborPeerID, new Neighbor(neighborSocket, neighborPeerID));
 
             // Log connection
             logger.TCP_connect(peerID, neighborPeerID);
@@ -163,7 +161,7 @@ public class Peer {
                 PeerConnection newListener = new PeerConnection(peerID, socket, pieces, neighborData, pieceManager, requestedPieces, peerInfoConfig.getNumberOfNeighbors(), isRunning);
                 newListener.start();
 
-                listenerConnections.add(newListener);
+//                listenerConnections.add(newListener);
 
                 System.out.println(peerID + " listening #" + i);
             }
@@ -207,6 +205,7 @@ public class Peer {
 
     public static void main(String args[]) throws IOException {
         final int peerID = Integer.parseInt(args[0]);
+//        final int peerID = 1003;
         final Peer client = new Peer(peerID);
         System.out.println("Process " + "\u001B[31m" + peerID + "\u001B[0m" + " running.");
         client.run();

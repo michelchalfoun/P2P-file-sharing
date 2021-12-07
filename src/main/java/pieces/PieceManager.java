@@ -1,6 +1,7 @@
 package pieces;
 
 import logging.Logging;
+import neighbor.NeighborDataWrapper;
 
 import java.io.File;
 import java.io.IOException;
@@ -73,7 +74,7 @@ public class PieceManager {
         createFileWithBytes(getPiecePath(pieceID), pieceBytes);
     }
 
-    public void consolidatePiecesIntoFile() {
+    public void consolidatePiecesIntoFile(NeighborDataWrapper neighborData) {
         if (isConsolidated.compareAndSet(false, true)) {
             Logging.getInstance().custom("Initializing consolidation!");
             try {
@@ -93,6 +94,7 @@ public class PieceManager {
                 e.printStackTrace();
             }
             Logging.getInstance().custom("Completed consolidation!");
+            neighborData.closeAllConnections();
         }
     }
 
