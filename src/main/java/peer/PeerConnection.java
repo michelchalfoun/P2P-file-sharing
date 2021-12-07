@@ -153,25 +153,8 @@ public class PeerConnection extends Thread {
 //                    e.printStackTrace();
                 }
             }
-//            if (!isRunning.get()) {
-//                neighborData.get(neighborID).closeStream();
-//                try {
-//                    inputStream.close();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//                interrupt();
-//            }
         }
         logger.custom("(termination) Neighbor " + neighborID + " isRunning is " + isRunning.get());
-//        neighborData.get(neighborID).closeStream();
-//        try {
-//            inputStream.close();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        System.out.println("Ended connection between " + peerID + " and " + neighborID);
-//        interrupt();
     }
 
     private void processMessage() throws IOException, ClassNotFoundException {
@@ -282,7 +265,6 @@ public class PeerConnection extends Thread {
                         interested
                                 ? MessageType.INTERESTED.getValue()
                                 : MessageType.NOT_INTERESTED.getValue());
-        logger.custom("Sending intent message to " +neighborID + " and isRunning: " + isRunning.get());
         if (!isRunning.get()) return;
         neighborData.getNeighborData().get(neighborID).sendMessageInOutputStream(notInterested);
     }
@@ -318,7 +300,6 @@ public class PeerConnection extends Thread {
 
         if (allFilesDownloaded) {
             pieceManager.consolidatePiecesIntoFile(neighborData);
-            logger.custom("isRunning is NOW false from neighbor " + neighborID);
         }
     }
 }

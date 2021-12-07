@@ -162,7 +162,6 @@ public class Peer {
 
 //                listenerConnections.add(newListener);
 
-                System.out.println(peerID + " listening #" + i);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -173,7 +172,6 @@ public class Peer {
                 e.printStackTrace();
             }
         }
-        System.out.println(peerID + " received all connections");
     }
 
     // Handles checking previously started neighbors and connects to them
@@ -209,9 +207,8 @@ public class Peer {
 
     public static void main(String args[]) throws IOException {
         final int peerID = Integer.parseInt(args[0]);
-//        final int peerID = 1003;
-//        final Peer client = new Peer(peerID);
+        final Peer client = new Peer(peerID);
         System.out.println("Process " + "\u001B[31m" + peerID + "\u001B[0m" + " running.");
-//        client.run();
+        client.run();
     }
 }

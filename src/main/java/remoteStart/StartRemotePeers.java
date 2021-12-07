@@ -15,7 +15,7 @@ import com.jcraft.jsch.Session;
 
 public class StartRemotePeers {
 
-    private static final String scriptPrefix = "java -jar peerProcess.jar ";
+    private static final String scriptPrefix = "cd ~/project && java -jar peerProcess.jar ";
 
     public static class PeerInfo {
 
@@ -46,7 +46,7 @@ public class StartRemotePeers {
     }
 
     public static void main(String[] args) {
-
+        System.out.println("Starting remote run");
         ArrayList<PeerInfo> peerList = new ArrayList<>();
 
         String ciseUser = "pabloestrada"; // change with your CISE username
@@ -56,12 +56,13 @@ public class StartRemotePeers {
          * CISE machines. Also make sure that the peers which have the file initially have it under
          * the 'peer_[peerID]' folder.
          */
-        peerList.add(new PeerInfo("1001", "lin114-00.cise.ufl.edu"));
-        peerList.add(new PeerInfo("1002", "lin114-01.cise.ufl.edu"));
-        peerList.add(new PeerInfo("1003", "lin114-02.cise.ufl.edu"));
-        peerList.add(new PeerInfo("1004", "lin114-03.cise.ufl.edu"));
-        peerList.add(new PeerInfo("1005", "lin114-04.cise.ufl.edu"));
-        peerList.add(new PeerInfo("1006", "lin114-05.cise.ufl.edu"));
+        peerList.add(new PeerInfo("1001", "lin113-18.cise.ufl.edu"));
+        peerList.add(new PeerInfo("1002", "lin113-19.cise.ufl.edu"));
+        peerList.add(new PeerInfo("1003", "lin113-20.cise.ufl.edu"));
+        peerList.add(new PeerInfo("1004", "lin113-21.cise.ufl.edu"));
+        peerList.add(new PeerInfo("1005", "lin113-22.cise.ufl.edu"));
+
+        System.out.println("Added peers");
 
         for (PeerInfo remotePeer : peerList) {
             try {
@@ -72,14 +73,21 @@ public class StartRemotePeers {
                  * without a password. Or you can use the corressponding method
                  * of JSch which accepts a password.
                  */
+                System.out.println("Starting peer " + remotePeer.getPeerID() + " " + remotePeer.getHostName());
                 final String password = "Harvardclose321"; // add key password
                 jsch.addIdentity("/Users/pabloestrada/.ssh/id_rsa", password);
                 Session session = jsch.getSession(ciseUser, remotePeer.getHostName(), 22);
                 Properties config = new Properties();
+
                 config.put("StrictHostKeyChecking", "no");
+//                config.put("PreferredAuthentications", "password");
+
                 session.setConfig(config);
 
+                System.out.println("Attempting to connect to session");
                 session.connect();
+                System.out.println("Connection successful");
+
 
                 System.out.println(
                         "Session to peer# "
@@ -124,11 +132,11 @@ public class StartRemotePeers {
                                     ex.printStackTrace();
                                 }
 
-                                try {
-                                    channel.sendSignal("KILL");
-                                } catch (Exception e) {
-                                    e.printStackTrace();
-                                }
+//                                try {
+//                                    channel.sendSignal("KILL");
+//                                } catch (Exception e) {
+//                                    e.printStackTrace();
+//                                }
 
                                 channel.disconnect();
                                 session.disconnect();
