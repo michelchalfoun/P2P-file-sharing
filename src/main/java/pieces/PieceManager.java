@@ -9,6 +9,7 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.concurrent.locks.ReentrantLock;
@@ -21,31 +22,31 @@ public class PieceManager {
     private final int pieceSize;
     private final int numberOfPieces;
     private final int fileSize;
-    private final AtomicInteger numberOfPiecesDownloaded;
-    private final ReentrantReadWriteLock consolidationLock;
+    private final Pieces pieces;
+//    private final ReentrantReadWriteLock consolidationLock;
+
+    private final AtomicBoolean isConsolidated;
 
     public PieceManager(
             final int peerID,
             final String fileName,
             final int fileSize,
             final int pieceSize,
-            final AtomicInteger numberOfPiecesDownloaded) {
+            final Pieces pieces) {
         this.peerID = peerID;
         this.fileName = fileName;
         this.fileSize = fileSize;
         this.pieceSize = pieceSize;
-        this.numberOfPiecesDownloaded = numberOfPiecesDownloaded;
+        this.pieces = pieces;
         numberOfPieces = (int) Math.ceil((float) fileSize / (float) pieceSize);
-        consolidationLock = new ReentrantReadWriteLock();
+//        consolidationLock = new ReentrantReadWriteLock();
+        isConsolidated = new AtomicBoolean(false);
     }
 
-    // TODO: remove param
-    public byte[] getPiece(final int pieceID, AtomicReferenceArray<Boolean> pieces) {
-        consolidationLock.readLock().lock();
-        if (numberOfPiecesDownloaded.get() == numberOfPieces) {
-            // Has consolidated file
-            try {
-                byte[] allBytesInFile = Files.readAllBytes(Paths.get(getFilePath()));
+    public void convertToPieces() {
+        try {
+            byte[] allBytesInFile = Files.readAllBytes(Paths.get(getFilePath()));
+            for (int pieceID = 0; pieceID < pieces.getNumberOfPieces(); pieceID++) {
                 byte[] pieceBytes =
                         new byte[pieceID == numberOfPieces - 1 ? fileSize % pieceSize : pieceSize];
 
@@ -54,23 +55,47 @@ public class PieceManager {
                 for (int index = startingByte; index < endingByte; index++) {
                     pieceBytes[index - startingByte] = allBytesInFile[index];
                 }
-                consolidationLock.readLock().unlock();
-                return pieceBytes;
-            } catch (IOException e) {
-                logErr(e, pieces);
-                e.printStackTrace();
+                savePiece(pieceID, pieceBytes);
             }
-        } else {
-            // Has remaining pieces
-            try {
-                byte[] pieceBytes =Files.readAllBytes(Paths.get(getPiecePath(pieceID)));
-                consolidationLock.readLock().unlock();
-                return pieceBytes;
-            } catch (IOException e) {
-                logErr(e, pieces);
-                e.printStackTrace();
-            }
+            new File(getFilePath()).delete();
+        } catch (IOException e) {
+            logErr(e);
+            e.printStackTrace();
         }
+    }
+
+    // TODO: remove param
+    public byte[] getPiece(final int pieceID) {
+//        consolidationLock.readLock().lock();
+//        if (pieces.getNumberOfPiecesDownloaded() == numberOfPieces) {
+//            // Has consolidated file
+//            try {
+//                byte[] allBytesInFile = Files.readAllBytes(Paths.get(getFilePath()));
+//                byte[] pieceBytes =
+//                        new byte[pieceID == numberOfPieces - 1 ? fileSize % pieceSize : pieceSize];
+//
+//                final int startingByte = pieceID * pieceSize;
+//                final int endingByte = Math.min(fileSize, startingByte + pieceSize);
+//                for (int index = startingByte; index < endingByte; index++) {
+//                    pieceBytes[index - startingByte] = allBytesInFile[index];
+//                }
+////                consolidationLock.readLock().unlock();
+//                return pieceBytes;
+//            } catch (IOException e) {
+//                logErr(e);
+//                e.printStackTrace();
+//            }
+//        } else {
+            // Has remaining pieces (sec.jpg-piece-2)
+            try {
+                byte[] pieceBytes = Files.readAllBytes(Paths.get(getPiecePath(pieceID)));
+//                consolidationLock.readLock().unlock();
+                return pieceBytes;
+            } catch (IOException e) {
+                logErr(e);
+                e.printStackTrace();
+            }
+//        }
         return null;
     }
 
@@ -79,39 +104,41 @@ public class PieceManager {
     }
 
     // TODO: remove param
-    public void consolidatePiecesIntoFile(AtomicReferenceArray<Boolean> pieces) {
-        consolidationLock.writeLock().lock();
-        Logging.getInstance().custom("Initializing consolidation!");
-        try {
-        final byte[] fileBytes = new byte[fileSize];
-        int currentByte = 0;
-        for (int pieceIndex = 0; pieceIndex < numberOfPieces; pieceIndex++) {
-            final File newPiece = new File(getPiecePath(pieceIndex));
-            final byte[] pieceBytes = Files.readAllBytes(newPiece.toPath());
-            for (byte pieceByte : pieceBytes) {
-                fileBytes[currentByte++] = pieceByte;
+    public void consolidatePiecesIntoFile() {
+        //        consolidationLock.writeLock().lock();
+        if (isConsolidated.compareAndSet(false, true)) {
+            Logging.getInstance().custom("Initializing consolidation!");
+            try {
+                final byte[] fileBytes = new byte[fileSize];
+                int currentByte = 0;
+                for (int pieceIndex = 0; pieceIndex < numberOfPieces; pieceIndex++) {
+                    final File newPiece = new File(getPiecePath(pieceIndex));
+                    final byte[] pieceBytes = Files.readAllBytes(newPiece.toPath());
+                    for (byte pieceByte : pieceBytes) {
+                        fileBytes[currentByte++] = pieceByte;
+                    }
+                    newPiece.delete();
+                }
+                createFileWithBytes(getFilePath(), fileBytes);
+            } catch (IOException e) {
+                logErr(e);
+                e.printStackTrace();
             }
-            newPiece.delete();
+            Logging.getInstance().custom("Completed consolidation!");
+            //        consolidationLock.writeLock().unlock();
         }
-        createFileWithBytes(getFilePath(), fileBytes);
-        } catch(IOException e) {
-            logErr(e, pieces);
-            e.printStackTrace();
-        }
-        Logging.getInstance().custom("Completed consolidation!");
-        consolidationLock.writeLock().unlock();
     }
 
-    private void logErr(IOException e, AtomicReferenceArray<Boolean> pieces) {
+    private void logErr(IOException e) {
         StringWriter sw = new StringWriter();
         e.printStackTrace(new PrintWriter(sw));
         String exceptionAsString = sw.toString();
         Logging.getInstance().custom(pieces.toString());
         Logging.getInstance().custom(exceptionAsString);
-        Logging.getInstance().custom("NUMBER OF PIECES: " + numberOfPiecesDownloaded.get() + "/" + numberOfPieces);
+//        Logging.getInstance().custom("NUMBER OF PIECES: " + numberOfPiecesDownloaded.get() + "/" + numberOfPieces);
     }
     public boolean hasAllPieces() {
-        return numberOfPiecesDownloaded.get() == numberOfPieces;
+        return pieces.getNumberOfPiecesDownloaded() == numberOfPieces;
     }
 
     private void createFileWithBytes(final String fileName, final byte[] bytes) {

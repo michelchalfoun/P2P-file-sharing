@@ -4,6 +4,7 @@ import config.CommonConfig;
 import config.PeerInfoConfig;
 import neighbor.Neighbor;
 import pieces.PieceManager;
+import pieces.Pieces;
 import timer.UnchokingTimer;
 import messages.HandshakeMessage;
 import logging.Logging;
@@ -32,8 +33,7 @@ public class Peer {
     private final Map<Integer, Neighbor> neighborData;
     private final PeerMetadata metadata;
 
-    private AtomicReferenceArray<Boolean> pieceIndexes;
-    private AtomicInteger numberOfPiecesDownloaded;
+    private Pieces pieces;
     private PieceManager pieceManager;
     private Set<Integer> requestedPieces;
 
@@ -61,10 +61,13 @@ public class Peer {
                         commonConfig.getFileName(),
                         commonConfig.getFileSize(),
                         commonConfig.getPieceSize(),
-                        numberOfPiecesDownloaded);
+                        pieces);
+        if (metadata.isHasFile()) pieceManager.convertToPieces();
 
         ConcurrentHashMap<Integer, Integer> map = new ConcurrentHashMap<>();
         requestedPieces = map.newKeySet();
+
+        logger.custom("Number of neighbors is " + peerInfoConfig.getNumberOfNeighbors());
 
         // Setup Listener port
         try {
@@ -78,17 +81,17 @@ public class Peer {
         final float fileSize = commonConfig.getFileSize();
         final float pieceSize = commonConfig.getPieceSize();
         final int numberOfPieces = (int) Math.ceil(fileSize / pieceSize);
-        pieceIndexes = new AtomicReferenceArray<>(numberOfPieces);
+        final AtomicReferenceArray<Boolean> bitfield = new AtomicReferenceArray<>(numberOfPieces);
 
         for (int pieceId = 0; pieceId < numberOfPieces; pieceId++) {
             if (metadata.isHasFile()) {
-                pieceIndexes.set(pieceId, true);
+                bitfield.set(pieceId, true);
             } else {
-                pieceIndexes.set(pieceId, false);
+                bitfield.set(pieceId, false);
             }
         }
 
-        numberOfPiecesDownloaded = new AtomicInteger(metadata.isHasFile() ? numberOfPieces : 0);
+        pieces = new Pieces(bitfield, metadata.isHasFile() ? numberOfPieces : 0);
     }
 
     private void sendHandshake(final int neighborPeerID, final PeerMetadata metadata) {
@@ -112,13 +115,13 @@ public class Peer {
                             peerID,
                             neighborSocket,
                             true,
-                            pieceIndexes,
+                            pieces,
                             neighborData,
                             outputStream,
                             inputStream,
                             pieceManager,
                             requestedPieces,
-                    numberOfPiecesDownloaded)
+                            peerInfoConfig.getNumberOfNeighbors())
                     .start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -145,7 +148,7 @@ public class Peer {
         try {
             while (true) {
                 final Socket socket = listenerSocket.accept();
-                new PeerConnection(peerID, socket, pieceIndexes, neighborData, pieceManager, requestedPieces, numberOfPiecesDownloaded).start();
+                new PeerConnection(peerID, socket, pieces, neighborData, pieceManager, requestedPieces, peerInfoConfig.getNumberOfNeighbors()).start();
             }
         } catch (IOException e) {
             e.printStackTrace();

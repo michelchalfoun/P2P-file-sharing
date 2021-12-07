@@ -1,6 +1,7 @@
 package messages.payload.impl;
 
 import messages.payload.Payload;
+import pieces.Pieces;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReferenceArray;
@@ -12,17 +13,18 @@ import java.util.concurrent.atomic.AtomicReferenceArray;
  */
 public class BitfieldPayload implements Payload {
     private byte[] payload;
-    private AtomicReferenceArray<Boolean> pieces;
+    private Pieces pieces;
 
     // Bits to bytes
-    public BitfieldPayload(final AtomicReferenceArray<Boolean> pieces) {
-        final int payloadLength = (int) Math.ceil(pieces.length() / 8.0f);
+    public BitfieldPayload(final Pieces pieces) {
+        final int numberOfPieces = pieces.getNumberOfPieces();
+        final int payloadLength = (int) Math.ceil(numberOfPieces / 8.0f);
         payload = new byte[payloadLength];
 
-        for (int i = 0; i < pieces.length(); i += 8) {
+        for (int i = 0; i < numberOfPieces; i += 8) {
             final StringBuilder bitArray = new StringBuilder();
-            for (int j = Math.min(pieces.length() - i - 1, 8 - 1); j >= 0; j--) {
-                bitArray.append(pieces.get(i + j).equals(true) ? '1' : '0');
+            for (int j = Math.min(numberOfPieces - i - 1, 8 - 1); j >= 0; j--) {
+                bitArray.append(pieces.hasPiece(i + j) ? '1' : '0');
             }
             int decimalBase = Integer.parseInt(bitArray.toString(), 2);
             payload[i / 8] = (byte) decimalBase;
@@ -31,7 +33,8 @@ public class BitfieldPayload implements Payload {
 
     // Bytes to bits
     public BitfieldPayload(final int numberOfPieces, byte[] payloadInBytes) {
-        pieces = new AtomicReferenceArray<>(numberOfPieces);
+        final AtomicReferenceArray<Boolean> bitfield = new AtomicReferenceArray<>(numberOfPieces);
+        int numberOfPiecesDownloaded = 0;
         for (int i = 0; i < payloadInBytes.length; i++) {
             String binary =
                     reverse(
@@ -40,9 +43,15 @@ public class BitfieldPayload implements Payload {
 
             for (int j = 0; j < Math.min(numberOfPieces - (i * 8), 8); j++) {
                 int index = (i * 8) + j;
-                pieces.set(index, binary.charAt(j) == '1');
+                if (binary.charAt(j) == '1') {
+                    bitfield.set(index, true);
+                    numberOfPiecesDownloaded++;
+                } else {
+                    bitfield.set(index, false);
+                }
             }
         }
+        pieces = new Pieces(bitfield, numberOfPiecesDownloaded);
     }
 
     private String reverse(String a) {
@@ -54,7 +63,7 @@ public class BitfieldPayload implements Payload {
         return new String(newWord);
     }
 
-    public AtomicReferenceArray<Boolean> getPieces() {
+    public Pieces getPieces() {
         return pieces;
     }
 

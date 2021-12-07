@@ -6,13 +6,14 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import messages.Message;
 import messages.HandshakeMessage;
+import pieces.Pieces;
 
 public class Neighbor {
     private final Socket socket;
     private ObjectOutputStream outputStream;
 
     private final int peerID;
-    private AtomicReferenceArray bitfield;
+    private Pieces pieces;
 
     // represents if the peer -> neighbor connection is choked (we aren't sending the neighbor pieces)
     private boolean isChoked;
@@ -27,23 +28,22 @@ public class Neighbor {
         this.interested = false;
     }
 
-    public Neighbor(final Socket socket, final int peerID, final ObjectOutputStream outputStream, final AtomicReferenceArray bitfield) {
+    public Neighbor(final Socket socket, final int peerID, final ObjectOutputStream outputStream, final int numberOfPieces) {
         this(socket, peerID);
         this.outputStream = outputStream;
-        this.bitfield = bitfield;
-
-        for (int index = 0; index < bitfield.length(); index++) {
-            bitfield.set(index, false);
-        }
+        this.pieces = new Pieces(numberOfPieces);
     }
 
     public synchronized int getPeerID() {
         return peerID;
     }
 
-    // TODO: check if you need this
-    public synchronized AtomicReferenceArray getBitfield() {
-        return bitfield;
+    public synchronized Pieces getPieces() {
+        return pieces;
+    }
+
+    public synchronized void setPieces(final Pieces pieces) {
+        this.pieces = pieces;
     }
 
     public synchronized Socket getSocket() {
@@ -64,10 +64,6 @@ public class Neighbor {
 
     public synchronized void addNumberOfDownloadedBytes(final int numberOfBytes) {
         numberOfDownloadedBytes += numberOfBytes;
-    }
-
-    public synchronized void setBitfield(final AtomicReferenceArray bitfield) {
-        this.bitfield = bitfield;
     }
 
     public synchronized void setInterested(final boolean interested) {
@@ -104,7 +100,6 @@ public class Neighbor {
     public String toString() {
         return "Neighbor{" +
                 "peerID=" + peerID +
-                ", bitfield=" + bitfield +
                 ", interested=" + interested +
                 ", downloadRate=" + numberOfDownloadedBytes +
                 '}';

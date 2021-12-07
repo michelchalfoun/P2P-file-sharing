@@ -35,6 +35,10 @@ public class PeerInfoConfig {
         }
     }
 
+    public int getNumberOfNeighbors() {
+        return peerMetadataById.size() - 1;
+    }
+
     public PeerMetadata getPeerInfo(final int peerID) {
         return peerMetadataById.get(peerID);
     }

@@ -19,7 +19,7 @@ java -jar peerProcess.jar 1005 &
 PID5=$!
 
 echo "sleeping"
-sleep 30
+sleep 35
 echo "done***"
 kill $PID1
 kill $PID2
