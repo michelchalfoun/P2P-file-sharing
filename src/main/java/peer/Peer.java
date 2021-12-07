@@ -40,6 +40,9 @@ public class Peer {
     private ServerSocket listenerSocket;
     private final AtomicBoolean isRunning;
 
+    private final ArrayList<PeerConnection> listenerConnections;
+    private final ArrayList<PeerConnection> setupConnections;
+
     public Peer(final int peerID) throws IOException {
         this.peerID = peerID;
 
@@ -47,6 +50,9 @@ public class Peer {
 
         logger = Logging.getInstance();
         logger.setPeerID(peerID);
+
+        listenerConnections = new ArrayList<>();
+        setupConnections = new ArrayList<>();
 
         // Setup config parsers
         commonConfig = new CommonConfig();
@@ -111,7 +117,7 @@ public class Peer {
             outputStream.writeObject(handshakeMessage);
             outputStream.flush();
 
-            new PeerConnection(
+            PeerConnection newSetup = new PeerConnection(
                             peerID,
                             neighborSocket,
                             true,
@@ -122,8 +128,11 @@ public class Peer {
                             pieceManager,
                             requestedPieces,
                             peerInfoConfig.getNumberOfNeighbors(),
-                            isRunning)
-                    .start();
+                            isRunning);
+
+            newSetup.start();
+            setupConnections.add(newSetup);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -151,7 +160,10 @@ public class Peer {
 //            while(true){
                 // We're getting stuck here waiting for a new connection when it has already listened to all the connections it should receive.
                 final Socket socket = listenerSocket.accept();
-                new PeerConnection(peerID, socket, pieces, neighborData, pieceManager, requestedPieces, peerInfoConfig.getNumberOfNeighbors(), isRunning).start();
+                PeerConnection newListener = new PeerConnection(peerID, socket, pieces, neighborData, pieceManager, requestedPieces, peerInfoConfig.getNumberOfNeighbors(), isRunning);
+                newListener.start();
+
+                listenerConnections.add(newListener);
 
                 System.out.println(peerID + " listening #" + i);
             }
@@ -176,6 +188,21 @@ public class Peer {
         unchokingTimer.start();
 
         listenForConnections();
+
+//        while(true){
+//            if (!isRunning.get()){
+//                for(PeerConnection p : listenerConnections){
+//                    p.interrupt();
+//                }
+//                for(PeerConnection p : setupConnections){
+//                    p.interrupt();
+//                }
+//                break;
+//            }
+//        }
+
+
+
     }
 
     public static void main(String args[]) throws IOException {

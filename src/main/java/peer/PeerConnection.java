@@ -160,6 +160,7 @@ public class PeerConnection extends Thread {
 //                interrupt();
 //            }
         }
+        logger.custom("Neighbor " + neighborID + " isRunning is " + isRunning.get());
         neighborData.get(neighborID).closeStream();
         try {
             inputStream.close();
@@ -278,6 +279,7 @@ public class PeerConnection extends Thread {
                         interested
                                 ? MessageType.INTERESTED.getValue()
                                 : MessageType.NOT_INTERESTED.getValue());
+        logger.custom("Sending intent message to " +neighborID + " and isRunning: " + isRunning.get());
         if (!isRunning.get()) return;
         neighborData.get(neighborID).sendMessageInOutputStream(notInterested);
     }
@@ -314,6 +316,7 @@ public class PeerConnection extends Thread {
         if (allFilesDownloaded) {
             pieceManager.consolidatePiecesIntoFile();
             isRunning.set(false);
+            logger.custom("isRunning is NOW false");
         }
     }
 }
