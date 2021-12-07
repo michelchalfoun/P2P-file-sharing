@@ -14,6 +14,7 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
@@ -140,10 +141,8 @@ public class Peer {
     // Creates the socket connection with a specific neighbor and stores it
     private void setupConnection(int neighborPeerID, final PeerMetadata metadata) {
         try {
-
             final Socket neighborSocket = new Socket(metadata.getHostName(), metadata.getListeningPort());
             neighborData.getNeighborData().put(neighborPeerID, new Neighbor(neighborSocket, neighborPeerID));
-
             // Log connection
             logger.TCP_connect(peerID, neighborPeerID);
         } catch (IOException e) {
@@ -179,6 +178,11 @@ public class Peer {
 
     // Handles checking previously started neighbors and connects to them
     public void run() {
+        try {
+            TimeUnit.SECONDS.sleep(1);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         peerInfoConfig.getPrevPeers(peerID).forEach(this::setupConnection);
         peerInfoConfig.getPrevPeers(peerID).forEach(this::sendHandshake);
 
@@ -206,8 +210,8 @@ public class Peer {
     public static void main(String args[]) throws IOException {
         final int peerID = Integer.parseInt(args[0]);
 //        final int peerID = 1003;
-        final Peer client = new Peer(peerID);
+//        final Peer client = new Peer(peerID);
         System.out.println("Process " + "\u001B[31m" + peerID + "\u001B[0m" + " running.");
-        client.run();
+//        client.run();
     }
 }

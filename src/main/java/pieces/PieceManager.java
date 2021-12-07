@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class PieceManager {
 
@@ -22,6 +23,8 @@ public class PieceManager {
     private final Pieces pieces;
 
     private final AtomicBoolean isConsolidated;
+
+    private final ReentrantReadWriteLock lock;
 
     public PieceManager(
             final int peerID,
@@ -36,37 +39,47 @@ public class PieceManager {
         this.pieces = pieces;
         numberOfPieces = (int) Math.ceil((float) fileSize / (float) pieceSize);
         isConsolidated = new AtomicBoolean(false);
+        lock = new ReentrantReadWriteLock();
     }
 
     public void convertToPieces() {
-        try {
-            byte[] allBytesInFile = Files.readAllBytes(Paths.get(getFilePath()));
-            for (int pieceID = 0; pieceID < pieces.getNumberOfPieces(); pieceID++) {
-                byte[] pieceBytes =
-                        new byte[pieceID == numberOfPieces - 1 ? fileSize % pieceSize : pieceSize];
+        new Thread(() -> {
+            lock.writeLock().lock();
+            try {
+                byte[] allBytesInFile = Files.readAllBytes(Paths.get(getFilePath()));
+                for (int pieceID = 0; pieceID < pieces.getNumberOfPieces(); pieceID++) {
+                    byte[] pieceBytes =
+                            new byte[pieceID == numberOfPieces - 1 ? fileSize % pieceSize : pieceSize];
 
-                final int startingByte = pieceID * pieceSize;
-                final int endingByte = Math.min(fileSize, startingByte + pieceSize);
-                for (int index = startingByte; index < endingByte; index++) {
-                    pieceBytes[index - startingByte] = allBytesInFile[index];
+                    final int startingByte = pieceID * pieceSize;
+                    final int endingByte = Math.min(fileSize, startingByte + pieceSize);
+                    for (int index = startingByte; index < endingByte; index++) {
+                        pieceBytes[index - startingByte] = allBytesInFile[index];
+                    }
+                    savePiece(pieceID, pieceBytes);
                 }
-                savePiece(pieceID, pieceBytes);
+                new File(getFilePath()).delete();
+
+                // unlock write
+            } catch (IOException e) {
+                logErr(e);
+                e.printStackTrace();
             }
-            new File(getFilePath()).delete();
-        } catch (IOException e) {
-            logErr(e);
-            e.printStackTrace();
-        }
+            lock.writeLock().unlock();
+        }).start();
     }
 
     public byte[] getPiece(final int pieceID) {
+        lock.readLock().lock();
         try {
-            byte[] pieceBytes = Files.readAllBytes(Paths.get(getPiecePath(pieceID)));
+            final byte[] pieceBytes = Files.readAllBytes(Paths.get(getPiecePath(pieceID)));
+            lock.readLock().unlock();
             return pieceBytes;
         } catch (IOException e) {
             logErr(e);
             e.printStackTrace();
         }
+        lock.readLock().unlock();
         return null;
     }
 

@@ -4,13 +4,13 @@ rm -rf logs
 sleep 5
 
 java -jar peerProcess.jar 1001 &
-sleep 5
+#sleep 5
 java -jar peerProcess.jar 1002 &
-sleep 1
+#sleep 1
 java -jar peerProcess.jar 1003 &
-sleep 1
+#sleep 1
 java -jar peerProcess.jar 1004 &
-sleep 1
+#sleep 1
 java -jar peerProcess.jar 1005 &
-sleep 1
+#sleep 1
 java -jar peerProcess.jar 1006 &
