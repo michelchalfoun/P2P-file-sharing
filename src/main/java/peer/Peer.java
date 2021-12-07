@@ -13,7 +13,7 @@ import java.net.*;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 
 /**
@@ -34,14 +34,16 @@ public class Peer {
     private final PeerMetadata metadata;
 
     private Pieces pieces;
-    private PieceManager pieceManager;
-    private Set<Integer> requestedPieces;
+    private final PieceManager pieceManager;
+    private final Set<Integer> requestedPieces;
 
     private ServerSocket listenerSocket;
-
+    private final AtomicBoolean isRunning;
 
     public Peer(final int peerID) throws IOException {
         this.peerID = peerID;
+
+        isRunning = new AtomicBoolean(true);
 
         logger = Logging.getInstance();
         logger.setPeerID(peerID);
@@ -66,8 +68,6 @@ public class Peer {
 
         ConcurrentHashMap<Integer, Integer> map = new ConcurrentHashMap<>();
         requestedPieces = map.newKeySet();
-
-        logger.custom("Number of neighbors is " + peerInfoConfig.getNumberOfNeighbors());
 
         // Setup Listener port
         try {
@@ -121,7 +121,8 @@ public class Peer {
                             inputStream,
                             pieceManager,
                             requestedPieces,
-                            peerInfoConfig.getNumberOfNeighbors())
+                            peerInfoConfig.getNumberOfNeighbors(),
+                            isRunning)
                     .start();
         } catch (IOException e) {
             e.printStackTrace();
@@ -146,9 +147,13 @@ public class Peer {
     // Constantly listens for connections
     private void listenForConnections() {
         try {
-            while (true) {
+            for (int i = 0; i < peerInfoConfig.getNumberOfNeighbors() - peerInfoConfig.getPrevPeers(peerID).size(); i++){
+//            while(true){
+                // We're getting stuck here waiting for a new connection when it has already listened to all the connections it should receive.
                 final Socket socket = listenerSocket.accept();
-                new PeerConnection(peerID, socket, pieces, neighborData, pieceManager, requestedPieces, peerInfoConfig.getNumberOfNeighbors()).start();
+                new PeerConnection(peerID, socket, pieces, neighborData, pieceManager, requestedPieces, peerInfoConfig.getNumberOfNeighbors(), isRunning).start();
+
+                System.out.println(peerID + " listening #" + i);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -159,6 +164,7 @@ public class Peer {
                 e.printStackTrace();
             }
         }
+        System.out.println(peerID + " received all connections");
     }
 
     // Handles checking previously started neighbors and connects to them
@@ -166,11 +172,8 @@ public class Peer {
         peerInfoConfig.getPrevPeers(peerID).forEach(this::setupConnection);
         peerInfoConfig.getPrevPeers(peerID).forEach(this::sendHandshake);
 
-        unchokingTimer = new UnchokingTimer(peerID, commonConfig.getUnchokingInterval(), commonConfig.getOptimisticUnchokingInterval(), commonConfig.getNumberOfPreferredNeighbors(), neighborData);
+        unchokingTimer = new UnchokingTimer(peerID, commonConfig.getUnchokingInterval(), commonConfig.getOptimisticUnchokingInterval(), commonConfig.getNumberOfPreferredNeighbors(), neighborData, isRunning);
         unchokingTimer.start();
-
-//        optimisticUnchokingTimer = new OptimisticUnchokingTimer(commonConfig.getOptimisticUnchokingInterval());
-//        optimisticUnchokingTimer.start();
 
         listenForConnections();
     }

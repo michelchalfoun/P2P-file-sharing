@@ -3,8 +3,6 @@ package messages.payload.impl;
 import messages.payload.Payload;
 import util.IntBytes;
 
-import java.io.*;
-
 public class PieceIndexPayload implements Payload {
 
     private final int pieceID;

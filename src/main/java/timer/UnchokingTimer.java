@@ -10,9 +10,10 @@ import neighbor.DownloadRateContainer;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-public class UnchokingTimer extends Thread {
+public class UnchokingTimer {
 
     private long counter;
 
@@ -29,17 +30,20 @@ public class UnchokingTimer extends Thread {
     private final PayloadFactory payloadFactory;
 
     private final Logging logger;
+    final AtomicBoolean isRunning;
 
     public UnchokingTimer(final int peerID,
                           final int unchokingInterval,
                           final int optimisticallyUnchokingInterval,
                           final int numberOfPreferredNeighbors,
-                          final Map<Integer, Neighbor> neighborData) {
+                          final Map<Integer, Neighbor> neighborData,
+                          final AtomicBoolean isRunning) {
         this.peerID = peerID;
         this.unchokingInterval = unchokingInterval;
         this.optimisticallyUnchokingInterval = optimisticallyUnchokingInterval;
         this.neighborData = neighborData;
         this.numberOfPreferredNeighbors = numberOfPreferredNeighbors;
+        this.isRunning = isRunning;
         timer = new Timer();
         counter = 0;
         messageFactory = new MessageFactory();
@@ -49,14 +53,19 @@ public class UnchokingTimer extends Thread {
         logger = Logging.getInstance();
     }
 
-    public void run() {
+    public void start() {
         timer = new Timer();
         final TimerTask task = new UnchokeTask();
         timer.schedule(task, 1000, 1000);
     }
 
     class UnchokeTask extends TimerTask {
+
         public void run() {
+            if (!isRunning.get()) {
+                timer.cancel();
+                return;
+            }
 
             if (counter % unchokingInterval == 0) {
                 setUnchokedNeighbors();
@@ -68,20 +77,6 @@ public class UnchokingTimer extends Thread {
 
             counter++;
         }
-
-        /**
-         *
-         * Peer 1001
-         * neighbors = [(1002, false)]
-         *
-         * Peer 1002
-         * neighbors = [(1001, false)]
-         *
-         */
-
-        /**
-         *
-         */
 
         private Set<Integer> getUnchokedPeerIDs() {
             final List<DownloadRateContainer> downloadRateContainers =
@@ -144,6 +139,12 @@ public class UnchokingTimer extends Thread {
         private void sendChokeMessage(final boolean isChoked, final Neighbor neighbor) {
             final Message request =
                     messageFactory.createMessage(isChoked ? MessageType.CHOKE : MessageType.UNCHOKE);
+
+            if (!isRunning.get()) {
+                timer.cancel();
+                return;
+            }
+
             neighbor.sendMessageInOutputStream(request);
         }
     }

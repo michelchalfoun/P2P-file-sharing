@@ -5,8 +5,8 @@ import util.IntBytes;
 
 public class PiecePayload implements Payload {
 
-    private byte[] payload;
-    private int pieceID;
+    private final byte[] payload;
+    private final int pieceID;
 
     public PiecePayload(final int pieceID, final byte[] piecePayload) {
         this.pieceID = pieceID;

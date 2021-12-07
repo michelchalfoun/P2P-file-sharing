@@ -5,7 +5,7 @@ sleep 5
 
 java -jar peerProcess.jar 1001 &
 PID1=$!
-sleep 1
+sleep 3
 java -jar peerProcess.jar 1002 &
 PID2=$!
 sleep 1
@@ -18,11 +18,8 @@ sleep 1
 java -jar peerProcess.jar 1005 &
 PID5=$!
 
-echo "sleeping"
-sleep 35
-echo "done***"
-kill $PID1
-kill $PID2
-kill $PID3
-kill $PID4
-kill $PID5
+
+sleep 20
+echo "**DONE**"
+
+cmp --silent 1001/img.JPG 1002/img.JPG && cmp --silent 1001/img.JPG 1003/img.JPG && cmp --silent 1001/img.JPG 1004/img.JPG && cmp --silent 1001/img.JPG 1005/img.JPG && echo "All files are the same" || echo "A file is  different"

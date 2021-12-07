@@ -3,7 +3,7 @@ package neighbor;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReferenceArray;
+
 import messages.Message;
 import messages.HandshakeMessage;
 import pieces.Pieces;
@@ -15,7 +15,6 @@ public class Neighbor {
     private final int peerID;
     private Pieces pieces;
 
-    // represents if the peer -> neighbor connection is choked (we aren't sending the neighbor pieces)
     private boolean isChoked;
 
     private boolean interested;
@@ -78,6 +77,14 @@ public class Neighbor {
         try {
             outputStream.writeObject(message);
             outputStream.flush();
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public synchronized void closeStream() {
+        try {
+            outputStream.close();
         } catch (java.io.IOException e) {
             e.printStackTrace();
         }

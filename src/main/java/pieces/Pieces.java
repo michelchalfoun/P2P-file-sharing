@@ -1,7 +1,5 @@
 package pieces;
 
-import logging.Logging;
-
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,7 +21,7 @@ public class Pieces {
 
     public Pieces(final int numberOfPieces) {
         this.numberOfPieces = numberOfPieces;
-        bitfield = new AtomicReferenceArray<Boolean>(numberOfPieces);
+        bitfield = new AtomicReferenceArray<>(numberOfPieces);
         numberOfPiecesDownloaded = new AtomicInteger(0);
         lock = new ReentrantReadWriteLock();
 
@@ -42,14 +40,6 @@ public class Pieces {
         }
         lock.writeLock().unlock();
         return updatedNumberOfPiecesDownloaded;
-    }
-
-    public int addPiece(final int pieceID) {
-        lock.writeLock().lock();
-        bitfield.set(pieceID, true);
-        final int updatedNumberOfPieces = numberOfPiecesDownloaded.incrementAndGet();
-        lock.writeLock().unlock();
-        return updatedNumberOfPieces;
     }
 
     public boolean hasPiece(final int peerID) {
@@ -115,8 +105,4 @@ public class Pieces {
         neighborPieces.getReadLock().unlock();
         return isInterested;
     }
-
-//    public void logBitfield() {
-//        Logging.getInstance().custom("Bitfield is " + bitfield);
-//    }
 }

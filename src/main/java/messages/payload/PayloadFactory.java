@@ -6,8 +6,6 @@ import messages.payload.impl.PieceIndexPayload;
 import messages.payload.impl.PiecePayload;
 import pieces.Pieces;
 
-import java.util.concurrent.atomic.AtomicReferenceArray;
-
 public class PayloadFactory
 {
     public BitfieldPayload createBitfieldPayload(final Pieces pieces) {

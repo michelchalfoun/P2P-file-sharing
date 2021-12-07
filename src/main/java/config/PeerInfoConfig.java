@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 /** Utility class to read and store values from PeerInfo.cfg */
 public class PeerInfoConfig {
-    private Map<Integer, PeerMetadata> peerMetadataById;
+    private final Map<Integer, PeerMetadata> peerMetadataById;
 
     public PeerInfoConfig() {
         peerMetadataById = new HashMap<>();

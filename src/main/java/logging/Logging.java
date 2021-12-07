@@ -7,20 +7,6 @@ import java.util.Set;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 
-import java.util.logging.SimpleFormatter;
-
-
-//private class CustomFormatter extends Formatter {
-//    private final Date date = new Date();
-//
-//    private static final String separator = " : ";
-//
-//    public synchronized String format(LogRecord record) {
-//        date.setTime(record.getMillis());
-//        return date + separator + record.getMessage() + "\n";
-//    }
-//}
-
 /** Logger class to log peer actions */
 public class Logging {
     private static Logging logging;
@@ -29,7 +15,6 @@ public class Logging {
 
     private final Logger logger;
     private FileHandler fileHandler;
-//    private SimpleFormatter formatter;
     private CustomFormatter formatter;
 
     public Logging() {
@@ -142,7 +127,6 @@ public class Logging {
     }
 
     private void logInfo(final String message) {
-        System.out.println(message);
         logger.info(message);
     }
 

@@ -1,7 +1,5 @@
 package neighbor;
 
-import java.util.Objects;
-
 public class DownloadRateContainer implements Comparable {
 
     private final float downloadRate;

@@ -6,7 +6,7 @@ import java.nio.ByteOrder;
 
 public class IntBytes {
     private byte[] bytes;
-    private int intValue;
+    private final int intValue;
 
     public IntBytes(final int intValue) {
         this.intValue = intValue;
@@ -22,8 +22,6 @@ public class IntBytes {
         this.intValue = bytesToInt(bytes);
     }
 
-    // TODO
-    // Build tests for this
     private byte[] intToBytes(int my_int) throws IOException {
         return ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN).putInt(my_int).array();
     }

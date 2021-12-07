@@ -21,12 +21,15 @@ sleep 1
 java -jar peerProcess.jar 1006 &
 PID6=$!
 
-echo "sleeping"
 sleep 30
-echo "done***"
+
+echo "\n**Done**\n"
+
 kill $PID1
 kill $PID2
 kill $PID3
 kill $PID4
 kill $PID5
 kill $PID6
+
+cmp --silent 1001/tree.jpg 1002/tree.jpg && cmp --silent 1001/tree.jpg 1003/tree.jpg && cmp --silent 1001/tree.jpg 1004/tree.jpg && cmp --silent 1001/tree.jpg 1005/tree.jpg && cmp --silent 1001/tree.jpg 1006/tree.jpg && echo "All files are the same" || echo "A file is  different"
