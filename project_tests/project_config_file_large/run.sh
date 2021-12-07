@@ -5,7 +5,7 @@ sleep 5
 
 java -jar peerProcess.jar 1001 &
 PID1=$!
-sleep 1
+sleep 5
 java -jar peerProcess.jar 1002 &
 PID2=$!
 sleep 1
@@ -21,7 +21,8 @@ sleep 1
 java -jar peerProcess.jar 1006 &
 PID6=$!
 
-sleep 100
+echo "sleeping"
+sleep 30
 echo "done***"
 kill $PID1
 kill $PID2

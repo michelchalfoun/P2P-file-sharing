@@ -24,5 +24,8 @@ out/
 # Log files
 logs/*
 
+#Mac
+*/*.DS_Store
+**/._.DS_Store
 
 project_tests/project_local_test/logs/*
