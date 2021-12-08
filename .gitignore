@@ -30,6 +30,6 @@ logs/*
 */*.DS_Store
 **/._.DS_Store
 
-project_tests/project_local_test/logs/*
-project_tests/project_config_file_large/logs/*
-project_tests/project_config_file_small/logs/*
+src/test/project_tests/project_local_test/logs/*
+src/test/project_tests/project_config_file_large/logs/*
+src/test/project_tests/project_config_file_small/logs/*
