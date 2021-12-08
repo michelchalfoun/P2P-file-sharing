@@ -287,6 +287,9 @@ public class PeerConnection extends Thread {
     private void sendHaveMessage(final int pieceID, final Neighbor targetNeighbor) {
         final Message haveMessage =
                 messageFactory.createMessage(payloadFactory.createPieceIndexPayload(pieceID), MessageType.HAVE);
+
+        if (!isRunning.get()) return;
+
         targetNeighbor.sendMessageInOutputStream(haveMessage);
     }
 

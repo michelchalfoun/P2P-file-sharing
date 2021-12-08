@@ -104,12 +104,27 @@ public class Peer {
 
     private void sendHandshake(final int neighborPeerID, final PeerMetadata metadata) {
 
+        Socket neighborSocket = null;
+
+        while (neighborSocket == null){
+            try {
+                neighborSocket = new Socket(metadata.getHostName(), metadata.getListeningPort());
+            } catch (IOException e) {
+                try {
+                    TimeUnit.SECONDS.sleep(1);
+                } catch (InterruptedException err) {
+                    err.printStackTrace();
+                }
+            }
+            continue;
+        }
+
+        logger.TCP_connect(peerID, neighborPeerID);
+
         // Create HandshakeMessage object
         final HandshakeMessage handshakeMessage = new HandshakeMessage(peerID);
         try {
-
             // Get stored socked for neighbor and setup input and output streams
-            final Socket neighborSocket = neighborData.getNeighborData().get(neighborPeerID).getSocket();
             final ObjectOutputStream outputStream =
                     new ObjectOutputStream(neighborSocket.getOutputStream());
             outputStream.flush();
@@ -142,14 +157,6 @@ public class Peer {
 
     // Creates the socket connection with a specific neighbor and stores it
     private void setupConnection(int neighborPeerID, final PeerMetadata metadata) {
-        try {
-            // Sets up connection and updates neighbor information
-            final Socket neighborSocket = new Socket(metadata.getHostName(), metadata.getListeningPort());
-            neighborData.getNeighborData().put(neighborPeerID, new Neighbor(neighborSocket, neighborPeerID));
-            logger.TCP_connect(peerID, neighborPeerID);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void listenForConnections() {
@@ -176,14 +183,9 @@ public class Peer {
 
     // Handles checking previously started neighbors and connects to them
     public void run() {
-        try {
-            TimeUnit.SECONDS.sleep(3);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
 
         // Creates and sends handshakes to respective neighbors
-        peerInfoConfig.getPrevPeers(peerID).forEach(this::setupConnection);
+        //peerInfoConfig.getPrevPeers(peerID).forEach(this::setupConnection);
         peerInfoConfig.getPrevPeers(peerID).forEach(this::sendHandshake);
 
         // Initialized timer thread that will select preferred and optimistically unchoked neighbors

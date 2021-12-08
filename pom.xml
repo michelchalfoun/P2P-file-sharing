@@ -66,16 +66,31 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>shade-test</id>
+                        <id>shade-execution-test</id>
                         <phase>package</phase>
                         <goals>
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <finalName>peerTest</finalName>
+                            <finalName>peerRemoteTest</finalName>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>remoteStart.StartRemotePeers</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>shade-termination-test</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>terminationTest</finalName>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>remoteStart.ViewRemotePeers</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

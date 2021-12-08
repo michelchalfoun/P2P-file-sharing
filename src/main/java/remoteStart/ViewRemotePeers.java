@@ -47,45 +47,23 @@ public class ViewRemotePeers {
 
     public static void main(String[] args) {
         System.out.println("Starting remote run");
-        ArrayList<PeerInfo> peerList = new ArrayList<>();
-
-        String ciseUser = "pabloestrada"; // change with your CISE username
-
-        /**
-         * Make sure the below peer hostnames and peerIDs match those in PeerInfo.cfg in the remote
-         * CISE machines. Also make sure that the peers which have the file initially have it under
-         * the 'peer_[peerID]' folder.
-         */
-        peerList.add(new PeerInfo("16", "lin113-16.cise.ufl.edu"));
-        peerList.add(new PeerInfo("19", "lin113-19.cise.ufl.edu"));
-        peerList.add(new PeerInfo("20", "lin113-20.cise.ufl.edu"));
-        peerList.add(new PeerInfo("21", "lin113-21.cise.ufl.edu"));
-        peerList.add(new PeerInfo("22", "lin113-22.cise.ufl.edu"));
-        peerList.add(new PeerInfo("17", "lin113-17.cise.ufl.edu"));
+        ArrayList<remoteStart.PeerInfo> peerList = RemotePeersData.peerList;
 
         System.out.println("Added peers");
 
-        for (PeerInfo remotePeer : peerList) {
+        for (remoteStart.PeerInfo remotePeer : peerList) {
             try {
                 JSch jsch = new JSch();
-                /*
-                 * Give the path to your private key. Make sure your public key
-                 * is already within your remote CISE machine to ssh into it
-                 * without a password. Or you can use the corressponding method
-                 * of JSch which accepts a password.
-                 */
-                final String password = "Harvardclose321"; // add key password
-                jsch.addIdentity("/Users/pabloestrada/.ssh/id_rsa", password);
-                Session session = jsch.getSession(ciseUser, remotePeer.getHostName(), 22);
+
+                System.out.println("Starting peer " + remotePeer.getPeerID() + " " + remotePeer.getHostName());
+                jsch.addIdentity(RemotePeersData.keyLocation, RemotePeersData.keyPassword);
+                Session session = jsch.getSession(RemotePeersData.ciseUsername, remotePeer.getHostName(), 22);
                 Properties config = new Properties();
 
                 config.put("StrictHostKeyChecking", "no");
-
                 session.setConfig(config);
-
                 session.connect();
                 System.out.println("Connection successful");
-
 
                 System.out.println(
                         "Session to peer# "

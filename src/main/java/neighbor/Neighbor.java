@@ -85,6 +85,7 @@ public class Neighbor {
     }
 
     public synchronized void sendMessageInOutputStream(final Message message) {
+
         try {
             outputStream.writeObject(message);
             outputStream.flush();
