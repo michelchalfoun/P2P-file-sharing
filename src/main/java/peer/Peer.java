@@ -17,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReferenceArray;
+import java.util.stream.Collectors;
 
 /**
  * Main class that sets up the main Peer process (spins up all of the listener threads and keeps
@@ -38,6 +39,7 @@ public class Peer {
     private Pieces pieces;
     private final PieceManager pieceManager;
     private final Set<Integer> requestedPieces;
+    private final Map<Integer, Boolean> isInterested;
 
     private ServerSocket listenerSocket;
     private final AtomicBoolean isRunning;
@@ -49,14 +51,13 @@ public class Peer {
 
         logger = Logging.getInstance();
         logger.setPeerID(peerID);
-//
-//        listenerConnections = new ArrayList<>();
-//        setupConnections = new ArrayList<>();
 
         // Setup config parsers
         commonConfig = new CommonConfig();
         peerInfoConfig = new PeerInfoConfig();
         metadata = peerInfoConfig.getPeerInfo(peerID);
+
+        isInterested = peerInfoConfig.getPeerIDs().stream().filter(id -> id != peerID).collect(Collectors.toConcurrentMap(e -> e, e -> false));
 
         // Initialize socket and neighbor information storage
         neighborData = new NeighborDataWrapper(isRunning);
@@ -78,7 +79,6 @@ public class Peer {
         try {
             listenerSocket = new ServerSocket(metadata.getListeningPort());
         } catch (IOException e) {
-            logger.custom("Failed to setup connection with " + metadata.getListeningPort() + " for " + metadata.getHostName());
             e.printStackTrace();
         }
     }
@@ -128,10 +128,10 @@ public class Peer {
                             pieceManager,
                             requestedPieces,
                             peerInfoConfig.getNumberOfNeighbors(),
-                            isRunning);
+                            isRunning,
+                            isInterested);
 
             newSetup.start();
-//            setupConnections.add(newSetup);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -142,30 +142,22 @@ public class Peer {
     // Creates the socket connection with a specific neighbor and stores it
     private void setupConnection(int neighborPeerID, final PeerMetadata metadata) {
         try {
-            System.out.println("PEERID: " + peerID + " WITH " + neighborPeerID);
             final Socket neighborSocket = new Socket(metadata.getHostName(), metadata.getListeningPort());
             neighborData.getNeighborData().put(neighborPeerID, new Neighbor(neighborSocket, neighborPeerID));
             // Log connection
             logger.TCP_connect(peerID, neighborPeerID);
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Error with " + peerID + " for " + neighborPeerID);
         }
     }
 
-    // Constantly listens for connections
     private void listenForConnections() {
-        System.out.println(peerID + " Starting to listen");
         try {
             for (int i = 0; i < peerInfoConfig.getNumberOfNeighbors() - peerInfoConfig.getPrevPeers(peerID).size(); i++) {
-                System.out.println("Peer " + peerID +  " is listening to " + i);
-//            while(true){
                 // We're getting stuck here waiting for a new connection when it has already listened to all the connections it should receive.
                 final Socket socket = listenerSocket.accept();
-                PeerConnection newListener = new PeerConnection(peerID, socket, pieces, neighborData, pieceManager, requestedPieces, peerInfoConfig.getNumberOfNeighbors(), isRunning);
+                PeerConnection newListener = new PeerConnection(peerID, socket, pieces, neighborData, pieceManager, requestedPieces, peerInfoConfig.getNumberOfNeighbors(), isRunning, isInterested);
                 newListener.start();
-//                listenerConnections.add(newListener);
-
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -193,21 +185,6 @@ public class Peer {
         unchokingTimer.start();
 
         listenForConnections();
-
-//        while(true){
-//            if (!isRunning.get()){
-//                for(PeerConnection p : listenerConnections){
-//                    p.interrupt();
-//                }
-//                for(PeerConnection p : setupConnections){
-//                    p.interrupt();
-//                }
-//                break;
-//            }
-//        }
-
-
-
     }
 
     public static void main(String args[]) throws IOException {

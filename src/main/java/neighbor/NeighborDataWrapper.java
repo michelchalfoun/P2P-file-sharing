@@ -26,26 +26,20 @@ public class NeighborDataWrapper {
     public void closeAllConnections() {
         lock.writeLock().lock();
         if (isRunning.compareAndSet(true, false)) {
-            Logging.getInstance().custom("Started closing streams");
             neighborData.values().forEach(neighbor -> {
-                Logging.getInstance().custom("Closing stream for neighbor " + neighbor.getPeerID());
                 try {
                     neighbor.getOutputStream().close();
                 } catch (IOException e) {
-                    Logging.getInstance().customErr(e);
                 }
                 try {
                     neighbor.getInputStream().close();
                 } catch (IOException e) {
-                    Logging.getInstance().customErr(e);
                 }
                 try {
                     neighbor.getSocket().close();
                 } catch (IOException e) {
-                    Logging.getInstance().customErr(e);
                 }
             });
-            Logging.getInstance().custom("Finished closing streams");
         }
         lock.writeLock().unlock();
     }

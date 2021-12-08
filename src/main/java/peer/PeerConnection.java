@@ -47,6 +47,8 @@ public class PeerConnection extends Thread {
 
     private final Set<Integer> peerRequestedPieces;
 
+    private final Map<Integer, Boolean> isInterested;
+
     private final int numberOfNeighbors;
     private final AtomicBoolean isRunning;
 
@@ -59,7 +61,8 @@ public class PeerConnection extends Thread {
             final PieceManager pieceManager,
             final Set<Integer> peerRequestedPieces,
             final int numberOfNeighbors,
-            final AtomicBoolean isRunning) {
+            final AtomicBoolean isRunning,
+            final Map<Integer, Boolean> isInterested) {
         connection = neighborSocket;
         messageFactory = new MessageFactory();
         payloadFactory = new PayloadFactory();
@@ -67,6 +70,7 @@ public class PeerConnection extends Thread {
         isHandshakeDone = false;
         neighborConnectionChoked = true;
         logger = Logging.getInstance();
+        this.isInterested = isInterested;
         this.peerID = peerID;
         this.hasSentHandshakeMessage = hasSentHandshakeMessage;
         this.neighborData = neighborData;
@@ -86,9 +90,10 @@ public class PeerConnection extends Thread {
             final PieceManager pieceManager,
             final Set<Integer> peerRequestedPieces,
             final int numberOfNeighbors,
-            final AtomicBoolean isRunning) {
+            final AtomicBoolean isRunning,
+            final Map<Integer, Boolean> isInterested) {
 
-        this(peerID, neighborSocket, false, pieces, neighborData, pieceManager, peerRequestedPieces, numberOfNeighbors, isRunning);
+        this(peerID, neighborSocket, false, pieces, neighborData, pieceManager, peerRequestedPieces, numberOfNeighbors, isRunning, isInterested);
         try {
             outputStream = new ObjectOutputStream(connection.getOutputStream());
             outputStream.flush();
@@ -110,14 +115,14 @@ public class PeerConnection extends Thread {
             final PieceManager pieceManager,
             final Set<Integer> peerRequestedPieces,
             final int numberOfNeighbors,
-            final AtomicBoolean isRunning) {
-        this(peerID, neighborSocket, hasSentHandshakeMessage, pieces, neighborData, pieceManager, peerRequestedPieces, numberOfNeighbors, isRunning);
+            final AtomicBoolean isRunning,
+            final Map<Integer, Boolean> isInterested) {
+        this(peerID, neighborSocket, hasSentHandshakeMessage, pieces, neighborData, pieceManager, peerRequestedPieces, numberOfNeighbors, isRunning, isInterested);
         this.inputStream = inputStream;
         this.outputStream = outputStream;
     }
 
     public void run() {
-        System.out.println("A connection has for " + peerID);
         while (isRunning.get()) {
 //             TODO 'receives a handshake message from peer B and checks whether peer B is the right neighbor'
             if (!isHandshakeDone) {
@@ -260,13 +265,16 @@ public class PeerConnection extends Thread {
 
     // Send message with interested/uninterested intent
     private void sendIntentMessage(final boolean interested) {
-        final Message notInterested =
+        if (isInterested.get(neighborID) == interested) return;
+
+        final Message intentMessage =
                 new Message(
                         interested
                                 ? MessageType.INTERESTED.getValue()
                                 : MessageType.NOT_INTERESTED.getValue());
         if (!isRunning.get()) return;
-        neighborData.getNeighborData().get(neighborID).sendMessageInOutputStream(notInterested);
+        neighborData.getNeighborData().get(neighborID).sendMessageInOutputStream(intentMessage);
+        isInterested.put(neighborID, interested);
     }
 
     private void sendRequestMessage(final int pieceIndex) {

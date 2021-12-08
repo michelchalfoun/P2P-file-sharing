@@ -48,4 +48,8 @@ public class PeerInfoConfig {
                 .filter(currentPeerID -> currentPeerID.getKey() < peerID)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
+
+    public Set<Integer> getPeerIDs() {
+        return peerMetadataById.keySet();
+    }
 }

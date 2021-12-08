@@ -89,7 +89,6 @@ public class PieceManager {
 
     public void consolidatePiecesIntoFile(NeighborDataWrapper neighborData) {
         if (isConsolidated.compareAndSet(false, true)) {
-            Logging.getInstance().custom("Started consolidation");
             try {
                 final byte[] fileBytes = new byte[fileSize];
                 int currentByte = 0;
@@ -106,7 +105,6 @@ public class PieceManager {
                 logErr(e);
                 e.printStackTrace();
             }
-            Logging.getInstance().custom("Finished consolidation");
             neighborData.closeAllConnections();
             System.exit(0);
         }
