@@ -41,8 +41,4 @@ public class NeighborDataWrapper {
         }
         lock.writeLock().unlock();
     }
-
-    public ReentrantReadWriteLock.ReadLock getTerminationLock() {
-        return lock.readLock();
-    }
 }

@@ -50,10 +50,6 @@ public class Message
         return MessageType.getMessageType(messageType);
     }
 
-    public int getPayloadLength() {
-        return messageLength - 1;
-    }
-
     public byte[] getPayloadBytes() {
         return payloadBytes;
     }

@@ -98,12 +98,7 @@ public class Neighbor {
             outputStream.writeObject(message);
             outputStream.flush();
         } catch (java.io.IOException e) {
-//            e.printStackTrace();
         }
-    }
-
-    public synchronized void setOutputStream(final ObjectOutputStream outputStream) {
-        this.outputStream = outputStream;
     }
 
     @Override

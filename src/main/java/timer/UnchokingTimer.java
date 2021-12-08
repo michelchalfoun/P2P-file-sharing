@@ -4,7 +4,6 @@ import logging.Logging;
 import messages.Message;
 import messages.MessageFactory;
 import messages.MessageType;
-import messages.payload.PayloadFactory;
 import neighbor.Neighbor;
 import neighbor.DownloadRateContainer;
 import neighbor.NeighborDataWrapper;
@@ -28,7 +27,6 @@ public class UnchokingTimer {
     final ThreadLocalRandom threadLocalRandom;
 
     private final MessageFactory messageFactory;
-    private final PayloadFactory payloadFactory;
 
     private final Logging logger;
     final AtomicBoolean isRunning;
@@ -48,7 +46,6 @@ public class UnchokingTimer {
         timer = new Timer();
         counter = 0;
         messageFactory = new MessageFactory();
-        payloadFactory = new PayloadFactory();
 
         threadLocalRandom = ThreadLocalRandom.current();
         logger = Logging.getInstance();

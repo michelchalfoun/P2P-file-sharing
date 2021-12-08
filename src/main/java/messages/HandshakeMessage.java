@@ -18,14 +18,6 @@ public class HandshakeMessage
         this.peerID = peerID;
     }
 
-    public String getHandshakeHeader() {
-        return HANDSHAKE_HEADER;
-    }
-
-    public byte[] getZeroBits() {
-        return ZERO_BITS;
-    }
-
     public int getPeerID() {
         return peerID;
     }
