@@ -15,8 +15,6 @@ import com.jcraft.jsch.Session;
 
 public class StartRemotePeers {
 
-    private static final String scriptPrefix = "cd ~/project/ && java -jar peerProcess.jar ";
-
     public static class PeerInfo {
 
         private String peerID;
@@ -74,7 +72,7 @@ public class StartRemotePeers {
 
                 Channel channel = session.openChannel("exec");
                 System.out.println("remotePeerID" + remotePeer.getPeerID());
-                ((ChannelExec) channel).setCommand(scriptPrefix + remotePeer.getPeerID());
+                ((ChannelExec) channel).setCommand(RemotePeersData.scriptPrefix + remotePeer.getPeerID());
 
                 channel.setInputStream(null);
                 ((ChannelExec) channel).setErrStream(System.err);

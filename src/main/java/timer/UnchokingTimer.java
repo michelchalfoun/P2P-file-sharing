@@ -131,6 +131,8 @@ public class UnchokingTimer {
                 neighborData.getNeighborData().get(randomNeighbor).setChoked(false);
                 logger.changeOptimUnchokedNeighbor(peerID, randomNeighbor);
                 sendChokeMessage(false, neighborData.getNeighborData().get(randomNeighbor));
+            } else {
+                logger.changeOptimUnchokedNeighbor(peerID, -1);
             }
         }
 

@@ -63,7 +63,7 @@ public class ViewRemotePeers {
                 config.put("StrictHostKeyChecking", "no");
                 session.setConfig(config);
                 session.connect();
-                System.out.println("Connection successful");
+//                System.out.println("Connection successful");
 
                 System.out.println(
                         "Session to peer# "
@@ -72,7 +72,7 @@ public class ViewRemotePeers {
                                 + remotePeer.getHostName());
 
                 Channel channel = session.openChannel("exec");
-                System.out.println("Running for " + remotePeer.getPeerID());
+//                System.out.println("Running for " + remotePeer.getPeerID());
                 ((ChannelExec) channel).setCommand(scriptPrefix);
 
                 channel.setInputStream(null);

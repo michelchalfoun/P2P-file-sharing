@@ -56,21 +56,30 @@ public class Logging {
     }
 
     public void changePreferredNeighbors(final int peerID_1, final Set<Integer> neighborID_list) {
-        String msg = "Peer " + peerID_1 + " has the preferred neighbors ";
-        for (int id : neighborID_list) {
-            msg += id + ", ";
+        if (neighborID_list.size() == 0) {
+            logInfo("Peer " + peerID_1 + " has no preferred neighbors");
+        } else {
+            String msg = "Peer " + peerID_1 + " has the preferred neighbors ";
+            for (int id : neighborID_list) {
+                msg += id + ", ";
+            }
+            // Remove last trailing comma and space
+            logInfo(msg.substring(0, msg.length() - 2) + ".");
         }
-        // Remove last trailing comma and space
-        logInfo(msg.substring(0, msg.length() - 2) + ".");
+
     }
 
     public void changeOptimUnchokedNeighbor(final int peerID_1, final int neighborID) {
-        logInfo(
-                "Peer "
-                        + peerID_1
-                        + " has the optimistically unchoked neighbor "
-                        + neighborID
-                        + ".");
+        if (neighborID == -1) {
+            logInfo("Peer " + peerID_1 + " has no optimistically unchoked neighbors.");
+        } else {
+            logInfo(
+                    "Peer "
+                            + peerID_1
+                            + " has the optimistically unchoked neighbor "
+                            + neighborID
+                            + ".");
+        }
     }
 
     public void unchoking(final int peerID_1, final int peerID_2) {
