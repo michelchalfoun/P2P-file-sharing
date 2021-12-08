@@ -4,7 +4,11 @@ transfer/*
 
 # User-specific stuff:
 .idea/
-
+/target/
+/.classpath
+/*.project
+/.settings
+/*.springBeans
 out/
 
 # Java
