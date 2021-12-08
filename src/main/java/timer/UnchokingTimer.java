@@ -125,7 +125,7 @@ public class UnchokingTimer {
         private void setOptimisticallyUnchokedPeerNeighbor(){
             final List<Integer> chokedPeerIDs =
                     neighborData.getNeighborData().values().stream()
-                            .filter(Neighbor::isChoked)
+                            .filter(neighbor -> neighbor.isChoked() && neighbor.isInitterested())
                             .map(Neighbor::getPeerID)
                             .collect(Collectors.toList());
 
