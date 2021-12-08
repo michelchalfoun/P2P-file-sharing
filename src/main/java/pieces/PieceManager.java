@@ -42,8 +42,11 @@ public class PieceManager {
         lock = new ReentrantReadWriteLock();
     }
 
+    // Splits up file into pieces for easy piece access
     public void convertToPieces() {
         new Thread(() -> {
+
+            // Prevent writing while splitting up
             lock.writeLock().lock();
             try {
                 byte[] allBytesInFile = Files.readAllBytes(Paths.get(getFilePath()));
@@ -60,16 +63,19 @@ public class PieceManager {
                 }
                 new File(getFilePath()).delete();
 
-                // unlock write
             } catch (IOException e) {
                 logErr(e);
                 e.printStackTrace();
             }
+
+            // Free up lock
             lock.writeLock().unlock();
         }).start();
     }
 
     public byte[] getPiece(final int pieceID) {
+
+        // Prevents reading when file is being split up
         lock.readLock().lock();
         try {
             final byte[] pieceBytes = Files.readAllBytes(Paths.get(getPiecePath(pieceID)));
@@ -87,6 +93,7 @@ public class PieceManager {
         createFileWithBytes(getPiecePath(pieceID), pieceBytes);
     }
 
+    // merge back pieces into file and delete pieces
     public void consolidatePiecesIntoFile(NeighborDataWrapper neighborData) {
         if (isConsolidated.compareAndSet(false, true)) {
             try {
@@ -105,6 +112,8 @@ public class PieceManager {
                 logErr(e);
                 e.printStackTrace();
             }
+
+            // Terminate process and threads when file has been consolitdated
             neighborData.closeAllConnections();
             System.exit(0);
         }

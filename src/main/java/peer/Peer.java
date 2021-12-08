@@ -89,6 +89,7 @@ public class Peer {
         final int numberOfPieces = (int) Math.ceil(fileSize / pieceSize);
         final AtomicReferenceArray<Boolean> bitfield = new AtomicReferenceArray<>(numberOfPieces);
 
+        // Sets up bitfield based on possession of file
         for (int pieceId = 0; pieceId < numberOfPieces; pieceId++) {
             if (metadata.isHasFile()) {
                 bitfield.set(pieceId, true);
@@ -97,6 +98,7 @@ public class Peer {
             }
         }
 
+        // Creates thread-safe pieces object
         pieces = new Pieces(bitfield, metadata.isHasFile() ? numberOfPieces : 0);
     }
 
@@ -138,13 +140,12 @@ public class Peer {
         }
     }
 
-    // TODO: move this to sendHandshake
     // Creates the socket connection with a specific neighbor and stores it
     private void setupConnection(int neighborPeerID, final PeerMetadata metadata) {
         try {
+            // Sets up connection and updates neighbor information
             final Socket neighborSocket = new Socket(metadata.getHostName(), metadata.getListeningPort());
             neighborData.getNeighborData().put(neighborPeerID, new Neighbor(neighborSocket, neighborPeerID));
-            // Log connection
             logger.TCP_connect(peerID, neighborPeerID);
         } catch (IOException e) {
             e.printStackTrace();
@@ -153,8 +154,11 @@ public class Peer {
 
     private void listenForConnections() {
         try {
+
+            // Only listen to expected amount of peers (all neighbors - previous neighbors = expected neighbors)
             for (int i = 0; i < peerInfoConfig.getNumberOfNeighbors() - peerInfoConfig.getPrevPeers(peerID).size(); i++) {
-                // We're getting stuck here waiting for a new connection when it has already listened to all the connections it should receive.
+
+                // Create listener peer connection that listens for incoming messages from each previous peer
                 final Socket socket = listenerSocket.accept();
                 PeerConnection newListener = new PeerConnection(peerID, socket, pieces, neighborData, pieceManager, requestedPieces, peerInfoConfig.getNumberOfNeighbors(), isRunning, isInterested);
                 newListener.start();
@@ -178,9 +182,11 @@ public class Peer {
             e.printStackTrace();
         }
 
+        // Creates and sends handshakes to respective neighbors
         peerInfoConfig.getPrevPeers(peerID).forEach(this::setupConnection);
         peerInfoConfig.getPrevPeers(peerID).forEach(this::sendHandshake);
 
+        // Initialized timer thread that will select preferred and optimistically unchoked neighbors
         unchokingTimer = new UnchokingTimer(peerID, commonConfig.getUnchokingInterval(), commonConfig.getOptimisticUnchokingInterval(), commonConfig.getNumberOfPreferredNeighbors(), neighborData, isRunning);
         unchokingTimer.start();
 

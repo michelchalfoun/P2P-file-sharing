@@ -6,23 +6,19 @@ public class Tst {
     public Tst() {
 
         final long target = System.currentTimeMillis() + 5 * 1000;
-        Thread threadOne = new Thread() {
-            public void run() {
-                while (isRunning) System.out.println("Thread Running");
-            }
-        };
+        Thread threadOne = new Thread(() -> {
+            while (isRunning) System.out.println("Thread Running");
+        });
         threadOne.start();
 
-        Thread threadTwo = new Thread() {
-            public void run() {
-                while (isRunning) {
-                    if (System.currentTimeMillis() >= target) {
-                        isRunning = false;
-                        threadOne.interrupt();
-                    }
+        Thread threadTwo = new Thread(() -> {
+            while (isRunning) {
+                if (System.currentTimeMillis() >= target) {
+                    isRunning = false;
+                    threadOne.interrupt();
                 }
             }
-        };
+        });
         threadTwo.start();
     }
 

@@ -1,7 +1,5 @@
 package neighbor;
 
-import logging.Logging;
-
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

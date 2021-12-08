@@ -110,36 +110,27 @@ public class ViewRemotePeers {
                                 + remotePeer.getHostName()
                                 + " server with commands");
 
-                (new Thread() {
-                    @Override
-                    public void run() {
+                (new Thread(() -> {
 
-                        InputStreamReader inputReader = new InputStreamReader(input);
-                        BufferedReader bufferedReader = new BufferedReader(inputReader);
-                        String line = null;
+                    InputStreamReader inputReader = new InputStreamReader(input);
+                    BufferedReader bufferedReader = new BufferedReader(inputReader);
+                    String line = null;
 
-                        try {
+                    try {
 
-                            while ((line = bufferedReader.readLine()) != null) {
-                                System.out.println(remotePeer.getPeerID() + ">:" + line);
-                            }
-                            bufferedReader.close();
-                            inputReader.close();
-                        } catch (Exception ex) {
-                            System.out.println(remotePeer.getPeerID() + " Exception >:");
-                            ex.printStackTrace();
+                        while ((line = bufferedReader.readLine()) != null) {
+                            System.out.println(remotePeer.getPeerID() + ">:" + line);
                         }
-
-//                                try {
-//                                    channel.sendSignal("KILL");
-//                                } catch (Exception e) {
-//                                    e.printStackTrace();
-//                                }
-
-                        channel.disconnect();
-                        session.disconnect();
+                        bufferedReader.close();
+                        inputReader.close();
+                    } catch (Exception ex) {
+                        System.out.println(remotePeer.getPeerID() + " Exception >:");
+                        ex.printStackTrace();
                     }
-                })
+
+                    channel.disconnect();
+                    session.disconnect();
+                }))
                         .start();
 
             } catch (JSchException e) {
