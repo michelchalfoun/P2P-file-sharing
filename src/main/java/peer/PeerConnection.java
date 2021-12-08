@@ -35,7 +35,6 @@ public class PeerConnection extends Thread {
     private final boolean hasSentHandshakeMessage;
     private boolean hasSentBitfieldMessage;
     private boolean isHandshakeDone;
-    // represents if the neighbor -> peer connection is choked (neighbor is not sending us pieces)
     private boolean neighborConnectionChoked;
 
     private final Pieces pieces;
@@ -52,6 +51,7 @@ public class PeerConnection extends Thread {
     private final int numberOfNeighbors;
     private final AtomicBoolean isRunning;
 
+    // Parent constructor
     public PeerConnection(
             final int peerID,
             final Socket neighborSocket,
@@ -124,7 +124,8 @@ public class PeerConnection extends Thread {
 
     public void run() {
         while (isRunning.get()) {
-//             TODO 'receives a handshake message from peer B and checks whether peer B is the right neighbor'
+
+            // Initial connection
             if (!isHandshakeDone) {
                 try {
                     final HandshakeMessage handshakeMessage =
@@ -136,6 +137,7 @@ public class PeerConnection extends Thread {
                     final Neighbor neighbor = new Neighbor(connection, neighborID, inputStream, outputStream, pieces.getNumberOfPieces());
                     neighborData.getNeighborData().put(neighborID, neighbor);
 
+                    //Handshake response
                     if (!hasSentHandshakeMessage) {
                         final HandshakeMessage responseHandshakeMessage =
                                 new HandshakeMessage(peerID);
@@ -144,66 +146,77 @@ public class PeerConnection extends Thread {
                         sendBitfieldMessage();
                     }
                     isHandshakeDone = true;
-                } catch (IOException e) {
-//                    e.printStackTrace();
-                } catch (ClassNotFoundException e) {
-//                    e.printStackTrace();
                 }
+                catch (IOException e) { }
+                catch (ClassNotFoundException e) { }
             } else {
+
                 // Other messages
                 try {
                     processMessage();
-                } catch (ClassNotFoundException e) {
-//                    e.printStackTrace();
-                } catch (IOException e) {
-//                    e.printStackTrace();
                 }
+                catch (ClassNotFoundException e) { }
+                catch (IOException e) { }
             }
         }
     }
 
     private void processMessage() throws IOException, ClassNotFoundException {
+
+        // Guard to stop processing messages
         if (!isRunning.get()) return;
 
         final Message message = (Message) inputStream.readObject();
         switch (message.getMessageType()) {
+
             case CHOKE:
                 neighborConnectionChoked = true;
                 logger.choking(peerID, neighborID);
                 break;
+
             case UNCHOKE:
                 neighborConnectionChoked = false;
                 logger.unchoking(peerID, neighborID);
                 requestRandomPiece();
                 break;
+
             case INTERESTED:
                 neighborData.getNeighborData().get(neighborID).setInterested(true);
                 logger.receiveInterestedMsg(peerID, neighborID);
                 break;
+
             case NOT_INTERESTED:
                 neighborData.getNeighborData().get(neighborID).setInterested(false);
                 logger.receiveNotInterestedMsg(peerID, neighborID);
                 break;
+
             case HAVE:
                 final int obtainedPieceID = payloadFactory.createPieceIndexPayload(message).getPieceID();
                 final Pieces neighborPieces = neighborData.getNeighborData().get(neighborID).getPieces();
 
+                // Thread safe setting of neighbor's bitfield (atomic operation)
                 if (neighborPieces.hasAndSet(obtainedPieceID) != -1) {
                     logger.receiveHaveMsg(peerID, neighborID, obtainedPieceID);
+
+                    // Checks if consolidation of file is now possible and executes it
                     checkAndConsolidate();
                     sendIntentMessage(pieces.isInterested(neighborPieces));
                 }
                 break;
+
             case BITFIELD:
                 final BitfieldPayload payload = payloadFactory.createBitfieldPayload(message, pieces.getNumberOfPieces());
 
+                // Initialize bitfield of neighbor
                 neighborData.getNeighborData().get(neighborID).setPieces(payload.getPieces());
                 sendIntentMessage(pieces.isInterested(payload.getPieces()));
 
+                // Coordinate with handshake process to prevent endless loops of handshakes/bitfield messages
                 if (!hasSentBitfieldMessage) {
                     sendBitfieldMessage();
                 }
                 break;
+
             case REQUEST:
                 final int requestedPieceID = payloadFactory.createPieceIndexPayload(message).getPieceID();
 
@@ -211,12 +224,15 @@ public class PeerConnection extends Thread {
                     sendPiece(requestedPieceID);
                 }
                 break;
+
             case PIECE:
                 final PiecePayload piecePayload = payloadFactory.createPiecePayload(message);
 
                 final int numberOfPiecesDownloaded = pieces.hasAndSet(piecePayload.getPieceID());
                 if (numberOfPiecesDownloaded != -1) {
                     pieceManager.savePiece(piecePayload.getPieceID(), piecePayload.getPayload());
+
+                    // Keeps track of downloaded pieces to check completion
                     neighborData.getNeighborData().get(neighborID).addNumberOfDownloadedBytes(piecePayload.getPayload().length);
                     logger.downloadingPiece(peerID, neighborID, piecePayload.getPieceID(), numberOfPiecesDownloaded);
 
@@ -226,9 +242,13 @@ public class PeerConnection extends Thread {
                     }
 
                     broadcastReceivedPiece(piecePayload.getPieceID());
+
+                    // Check if file can now be consolidated and executes it
                     checkAndConsolidate();
                 }
-                if (!pieceManager.hasAllPieces() && !neighborConnectionChoked) { // Request another piece if unchoked
+
+                // Request another piece if unchoked
+                if (!pieceManager.hasAllPieces() && !neighborConnectionChoked) {
                     requestRandomPiece();
                 }
                 break;
@@ -236,17 +256,18 @@ public class PeerConnection extends Thread {
     }
 
     private void requestRandomPiece() {
+
+        // Generate random piece index
         int pieceIndex = pieces.getRandomPiece(neighborData.getNeighborData().get(neighborID).getPieces());
 
         if (pieceIndex == -1) {
+
+            // Send 'not interested' if no pieces interests current peer
             sendIntentMessage(false);
+
         } else {
             sendRequestMessage(pieceIndex);
         }
-    }
-
-    private void broadcastReceivedPiece(final int pieceID) {
-        neighborData.getNeighborData().values().forEach(neighbor -> sendHaveMessage(pieceID, neighbor));
     }
 
     private void sendPiece(final int pieceID) {
@@ -257,6 +278,12 @@ public class PeerConnection extends Thread {
         neighborData.getNeighborData().get(neighborID).sendMessageInOutputStream(pieceMessage);
     }
 
+    private void broadcastReceivedPiece(final int pieceID) {
+
+        // Send have to all neighbors
+        neighborData.getNeighborData().values().forEach(neighbor -> sendHaveMessage(pieceID, neighbor));
+    }
+
     private void sendHaveMessage(final int pieceID, final Neighbor targetNeighbor) {
         final Message haveMessage =
                 messageFactory.createMessage(payloadFactory.createPieceIndexPayload(pieceID), MessageType.HAVE);
@@ -265,6 +292,8 @@ public class PeerConnection extends Thread {
 
     // Send message with interested/uninterested intent
     private void sendIntentMessage(final boolean interested) {
+
+        // Guard to prevent sending duplicate interested message
         if (isInterested.get(neighborID) == interested) return;
 
         final Message intentMessage =
@@ -272,7 +301,9 @@ public class PeerConnection extends Thread {
                         interested
                                 ? MessageType.INTERESTED.getValue()
                                 : MessageType.NOT_INTERESTED.getValue());
+
         if (!isRunning.get()) return;
+
         neighborData.getNeighborData().get(neighborID).sendMessageInOutputStream(intentMessage);
         isInterested.put(neighborID, interested);
     }
@@ -281,6 +312,8 @@ public class PeerConnection extends Thread {
         final Message request =
                 messageFactory.createMessage(payloadFactory.createPieceIndexPayload(pieceIndex), MessageType.REQUEST);
         neighborData.getNeighborData().get(neighborID).sendMessageInOutputStream(request);
+
+        // Add to requested pieces to not send duplicate requests
         peerRequestedPieces.add(pieceIndex);
     }
 
@@ -291,12 +324,20 @@ public class PeerConnection extends Thread {
                 messageFactory.createMessage(bitfieldPayload, MessageType.BITFIELD);
 
         neighborData.getNeighborData().get(neighborID).sendMessageInOutputStream(bitfieldMessage);
+
+        // Coordinates with handshake/bitfield process
         hasSentBitfieldMessage = true;
     }
 
     private void checkAndConsolidate(){
+
+        // Prevents early consolidation before having connected to ALL other neighbors
         if (neighborData.getNeighborData().size() != numberOfNeighbors) return;
+
+        // Checks if current peer has all pieces
         boolean allFilesDownloaded = pieces.getNumberOfPiecesDownloaded() == pieces.getNumberOfPieces();
+
+        // If any neighbor doesn't have all pieces, prevent consolidation
         if (allFilesDownloaded) {
             for (Map.Entry<Integer, Neighbor> neighbor : neighborData.getNeighborData().entrySet()) {
                 if (neighbor.getValue().getPieces().getNumberOfPiecesDownloaded()
@@ -306,9 +347,9 @@ public class PeerConnection extends Thread {
             }
         }
 
+        // Only consolidate when EVERYONE has ALL pieces
         if (allFilesDownloaded) {
             pieceManager.consolidatePiecesIntoFile(neighborData);
-            int s = 0;
         }
     }
 }
