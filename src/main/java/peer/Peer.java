@@ -78,6 +78,7 @@ public class Peer {
         try {
             listenerSocket = new ServerSocket(metadata.getListeningPort());
         } catch (IOException e) {
+            logger.custom("Failed to setup connection with " + metadata.getListeningPort() + " for " + metadata.getHostName());
             e.printStackTrace();
         }
     }
@@ -141,25 +142,28 @@ public class Peer {
     // Creates the socket connection with a specific neighbor and stores it
     private void setupConnection(int neighborPeerID, final PeerMetadata metadata) {
         try {
+            System.out.println("PEERID: " + peerID + " WITH " + neighborPeerID);
             final Socket neighborSocket = new Socket(metadata.getHostName(), metadata.getListeningPort());
             neighborData.getNeighborData().put(neighborPeerID, new Neighbor(neighborSocket, neighborPeerID));
             // Log connection
             logger.TCP_connect(peerID, neighborPeerID);
         } catch (IOException e) {
             e.printStackTrace();
+            System.out.println("Error with " + peerID + " for " + neighborPeerID);
         }
     }
 
     // Constantly listens for connections
     private void listenForConnections() {
+        System.out.println(peerID + " Starting to listen");
         try {
-            for (int i = 0; i < peerInfoConfig.getNumberOfNeighbors() - peerInfoConfig.getPrevPeers(peerID).size(); i++){
+            for (int i = 0; i < peerInfoConfig.getNumberOfNeighbors() - peerInfoConfig.getPrevPeers(peerID).size(); i++) {
+                System.out.println("Peer " + peerID +  " is listening to " + i);
 //            while(true){
                 // We're getting stuck here waiting for a new connection when it has already listened to all the connections it should receive.
                 final Socket socket = listenerSocket.accept();
                 PeerConnection newListener = new PeerConnection(peerID, socket, pieces, neighborData, pieceManager, requestedPieces, peerInfoConfig.getNumberOfNeighbors(), isRunning);
                 newListener.start();
-
 //                listenerConnections.add(newListener);
 
             }
@@ -177,10 +181,11 @@ public class Peer {
     // Handles checking previously started neighbors and connects to them
     public void run() {
         try {
-            TimeUnit.SECONDS.sleep(1);
+            TimeUnit.SECONDS.sleep(3);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
         peerInfoConfig.getPrevPeers(peerID).forEach(this::setupConnection);
         peerInfoConfig.getPrevPeers(peerID).forEach(this::sendHandshake);
 

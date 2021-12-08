@@ -117,6 +117,7 @@ public class PeerConnection extends Thread {
     }
 
     public void run() {
+        System.out.println("A connection has for " + peerID);
         while (isRunning.get()) {
 //             TODO 'receives a handshake message from peer B and checks whether peer B is the right neighbor'
             if (!isHandshakeDone) {
@@ -154,7 +155,6 @@ public class PeerConnection extends Thread {
                 }
             }
         }
-        logger.custom("(termination) Neighbor " + neighborID + " isRunning is " + isRunning.get());
     }
 
     private void processMessage() throws IOException, ClassNotFoundException {
@@ -300,6 +300,7 @@ public class PeerConnection extends Thread {
 
         if (allFilesDownloaded) {
             pieceManager.consolidatePiecesIntoFile(neighborData);
+            int s = 0;
         }
     }
 }

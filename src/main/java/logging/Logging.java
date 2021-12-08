@@ -2,6 +2,8 @@ package logging;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Paths;
 import java.util.Set;
 import java.util.logging.FileHandler;
@@ -124,6 +126,14 @@ public class Logging {
 
     public void custom(final String string) {
         logInfo(string);
+    }
+
+    public void customErr(final Exception e) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        e.printStackTrace(pw);
+        String sStackTrace = sw.toString(); // stack trace as a string
+        custom(sStackTrace);
     }
 
     private void logInfo(final String message) {
